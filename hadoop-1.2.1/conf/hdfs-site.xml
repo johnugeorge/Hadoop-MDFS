@@ -2,7 +2,9 @@
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 
 <!-- Put site-specific property overrides in this file. -->
-
 <configuration>
-
+	<property>
+		<name>dfs.replication</name>
+		<value>2</value>
+	</property>
 </configuration>
