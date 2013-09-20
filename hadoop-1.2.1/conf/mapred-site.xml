@@ -6,6 +6,6 @@
 <configuration>
 	<property>
 		<name>mapred.job.tracker</name>
-		<value>clusterNode1:9001</value>
+		<value>clusterNode1.local:9001</value>
 	</property>
 </configuration>
