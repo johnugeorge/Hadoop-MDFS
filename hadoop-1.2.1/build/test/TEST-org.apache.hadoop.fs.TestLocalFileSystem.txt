@@ -1,0 +1,14 @@
+Testsuite: org.apache.hadoop.fs.TestLocalFileSystem
+Tests run: 7, Failures: 0, Errors: 0, Time elapsed: 0.593 sec
+------------- Standard Output ---------------
+2013-09-26 19:25:51,495 WARN  conf.Configuration (Configuration.java:<clinit>(195)) - DEPRECATED: hadoop-site.xml found in the classpath. Usage of hadoop-site.xml is deprecated. Instead use core-site.xml, mapred-site.xml and hdfs-site.xml to override properties of core-default.xml, mapred-default.xml and hdfs-default.xml respectively
+2013-09-26 19:25:51,768 INFO  util.NativeCodeLoader (NativeCodeLoader.java:<clinit>(43)) - Loaded the native-hadoop library
+------------- ---------------- ---------------
+
+Testcase: testWorkingDirectory took 0.398 sec
+Testcase: testSyncable took 0.038 sec
+Testcase: testCopy took 0.039 sec
+Testcase: testHomeDirectory took 0.028 sec
+Testcase: testPathEscapes took 0.025 sec
+Testcase: testGetCanonicalServiceName took 0.042 sec
+Testcase: testHasFileDescriptor took 0.02 sec

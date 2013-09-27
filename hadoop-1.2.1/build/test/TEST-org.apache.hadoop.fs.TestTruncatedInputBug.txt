@@ -1,0 +1,10 @@
+Testsuite: org.apache.hadoop.fs.TestTruncatedInputBug
+Tests run: 1, Failures: 0, Errors: 0, Time elapsed: 0.395 sec
+------------- Standard Output ---------------
+2013-09-26 19:25:56,446 WARN  conf.Configuration (Configuration.java:<clinit>(195)) - DEPRECATED: hadoop-site.xml found in the classpath. Usage of hadoop-site.xml is deprecated. Instead use core-site.xml, mapred-site.xml and hdfs-site.xml to override properties of core-default.xml, mapred-default.xml and hdfs-default.xml respectively
+2013-09-26 19:25:56,747 INFO  util.NativeCodeLoader (NativeCodeLoader.java:<clinit>(43)) - Loaded the native-hadoop library
+MARKED
+Read 2048 bytes. file size=2048
+------------- ---------------- ---------------
+
+Testcase: testTruncatedInputBug took 0.392 sec

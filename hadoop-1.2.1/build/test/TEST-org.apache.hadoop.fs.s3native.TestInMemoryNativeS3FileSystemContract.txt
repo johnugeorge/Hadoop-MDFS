@@ -1,0 +1,119 @@
+Testsuite: org.apache.hadoop.fs.s3native.TestInMemoryNativeS3FileSystemContract
+Tests run: 32, Failures: 0, Errors: 0, Time elapsed: 0.874 sec
+------------- Standard Output ---------------
+2013-09-26 19:26:07,364 WARN  conf.Configuration (Configuration.java:<clinit>(195)) - DEPRECATED: hadoop-site.xml found in the classpath. Usage of hadoop-site.xml is deprecated. Instead use core-site.xml, mapred-site.xml and hdfs-site.xml to override properties of core-default.xml, mapred-default.xml and hdfs-default.xml respectively
+2013-09-26 19:26:07,564 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:open(498)) - Opening 's3n://null/test/hadoop/file1' for reading
+2013-09-26 19:26:07,630 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-5279262216417958589.tmp'
+2013-09-26 19:26:07,631 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,631 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,746 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-159885486424298460.tmp'
+2013-09-26 19:26:07,746 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,746 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,747 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:open(498)) - Opening 's3n://null/test/hadoop/file' for reading
+2013-09-26 19:26:07,777 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-4076175826586402080.tmp'
+2013-09-26 19:26:07,782 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,782 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,783 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:open(498)) - Opening 's3n://null/test/hadoop/file' for reading
+2013-09-26 19:26:07,783 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,784 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,815 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-2216090332253328514.tmp'
+2013-09-26 19:26:07,815 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,816 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,816 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:open(498)) - Opening 's3n://null/test/hadoop/file' for reading
+2013-09-26 19:26:07,819 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,820 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,845 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-1010571138441473570.tmp'
+2013-09-26 19:26:07,845 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,846 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,846 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:open(498)) - Opening 's3n://null/test/hadoop/file' for reading
+2013-09-26 19:26:07,846 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,847 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,881 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-5385214262424432790.tmp'
+2013-09-26 19:26:07,882 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,882 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,883 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:open(498)) - Opening 's3n://null/test/hadoop/file' for reading
+2013-09-26 19:26:07,883 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,883 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:seek(126)) - Opening key 'test/hadoop/file' for reading at position '0'
+2013-09-26 19:26:07,906 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-5920603586740232595.tmp'
+2013-09-26 19:26:07,907 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,907 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,908 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-873202029359214463.tmp'
+2013-09-26 19:26:07,908 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,908 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,928 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-3652104275939331689.tmp'
+2013-09-26 19:26:07,928 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,929 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:07,955 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-4220984072248943646.tmp'
+2013-09-26 19:26:07,955 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:07,956 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:08,006 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-2921621881246730127.tmp'
+2013-09-26 19:26:08,007 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:08,007 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:08,024 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-4134257302668165801.tmp'
+2013-09-26 19:26:08,024 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:08,025 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:08,038 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-1762569432362084604.tmp'
+2013-09-26 19:26:08,039 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:08,039 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:08,040 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/new/newfile' writing to tempfile 'build/test/s3/output-7625584809790447670.tmp'
+2013-09-26 19:26:08,040 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/new/newfile' closed. Now beginning upload
+2013-09-26 19:26:08,040 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/new/newfile' upload complete
+2013-09-26 19:26:08,053 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-4151352598772954530.tmp'
+2013-09-26 19:26:08,054 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:08,054 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:08,095 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/dir/file1' writing to tempfile 'build/test/s3/output-3267622963563281847.tmp'
+2013-09-26 19:26:08,096 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/dir/file1' closed. Now beginning upload
+2013-09-26 19:26:08,096 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/dir/file1' upload complete
+2013-09-26 19:26:08,096 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/dir/subdir/file2' writing to tempfile 'build/test/s3/output-2608233986994398394.tmp'
+2013-09-26 19:26:08,097 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/dir/subdir/file2' closed. Now beginning upload
+2013-09-26 19:26:08,098 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/dir/subdir/file2' upload complete
+2013-09-26 19:26:08,112 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/new/newfile' writing to tempfile 'build/test/s3/output-5622431429121806105.tmp'
+2013-09-26 19:26:08,112 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/new/newfile' closed. Now beginning upload
+2013-09-26 19:26:08,112 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/new/newfile' upload complete
+2013-09-26 19:26:08,121 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/dir/file1' writing to tempfile 'build/test/s3/output-7846332337730752624.tmp'
+2013-09-26 19:26:08,121 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/dir/file1' closed. Now beginning upload
+2013-09-26 19:26:08,122 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/dir/file1' upload complete
+2013-09-26 19:26:08,126 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/dir/subdir/file2' writing to tempfile 'build/test/s3/output-2684328874382331891.tmp'
+2013-09-26 19:26:08,126 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/dir/subdir/file2' closed. Now beginning upload
+2013-09-26 19:26:08,127 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/dir/subdir/file2' upload complete
+2013-09-26 19:26:08,135 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-8382809512458775852.tmp'
+2013-09-26 19:26:08,135 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:08,135 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+2013-09-26 19:26:08,136 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:open(498)) - Opening 's3n://null/test/hadoop/file' for reading
+2013-09-26 19:26:08,152 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:<init>(155)) - OutputStream for key 'test/hadoop/file' writing to tempfile 'build/test/s3/output-5475201172338152034.tmp'
+2013-09-26 19:26:08,154 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(190)) - OutputStream for key 'test/hadoop/file' closed. Now beginning upload
+2013-09-26 19:26:08,155 INFO  s3native.NativeS3FileSystem (NativeS3FileSystem.java:close(202)) - OutputStream for key 'test/hadoop/file' upload complete
+------------- ---------------- ---------------
+
+Testcase: testListStatusForRoot took 0.155 sec
+Testcase: testDirWithDifferentMarkersWorks took 0.032 sec
+Testcase: testDeleteWithNoMarker took 0.034 sec
+Testcase: testRenameWithNoMarker took 0.027 sec
+Testcase: testEmptyFile took 0.037 sec
+Testcase: testWorkingDirectory took 0.021 sec
+Testcase: testMkdirs took 0.016 sec
+Testcase: testMkdirsFailsForSubdirectoryOfExistingFile took 0.022 sec
+Testcase: testGetFileStatusThrowsExceptionForNonExistentFile took 0.015 sec
+Testcase: testListStatusReturnsNullForNonExistentFile took 0.018 sec
+Testcase: testListStatus took 0.043 sec
+Testcase: testWriteReadAndDeleteEmptyFile took 0.036 sec
+Testcase: testWriteReadAndDeleteHalfABlock took 0.037 sec
+Testcase: testWriteReadAndDeleteOneBlock took 0.037 sec
+Testcase: testWriteReadAndDeleteOneAndAHalfBlocks took 0.035 sec
+Testcase: testWriteReadAndDeleteTwoBlocks took 0.031 sec
+Testcase: testOverwrite took 0.02 sec
+Testcase: testWriteInNonExistentDirectory took 0.02 sec
+Testcase: testDeleteNonExistentFile took 0.01 sec
+Testcase: testDeleteRecursively took 0.011 sec
+Testcase: testDeleteEmptyDirectory took 0.011 sec
+Testcase: testRenameNonExistentPath took 0.02 sec
+Testcase: testRenameFileMoveToNonExistentDirectory took 0.013 sec
+Testcase: testRenameFileMoveToExistingDirectory took 0.014 sec
+Testcase: testRenameFileAsExistingFile took 0.013 sec
+Testcase: testRenameFileAsExistingDirectory took 0.011 sec
+Testcase: testRenameDirectoryMoveToNonExistentDirectory took 0.02 sec
+Testcase: testRenameDirectoryMoveToExistingDirectory took 0.017 sec
+Testcase: testRenameDirectoryAsExistingFile took 0.014 sec
+Testcase: testRenameDirectoryAsExistingDirectory took 0.014 sec
+Testcase: testInputStreamClosedTwice took 0.008 sec
+Testcase: testOutputStreamClosedTwice took 0.019 sec
