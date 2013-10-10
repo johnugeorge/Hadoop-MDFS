@@ -29,26 +29,26 @@ import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.hdfs.protocol.Block;
 
 /**
- * Directory INode class.
+ * Directory MDFSINode class.
  */
-class INodeDirectory extends INode {
+class MDFSINodeDirectory extends MDFSINode {
   protected static final int DEFAULT_FILES_PER_DIRECTORY = 5;
   final static String ROOT_NAME = "";
 
-  private List<INode> children;
+  private List<MDFSINode> children;
 
-  INodeDirectory(String name, PermissionStatus permissions) {
+  MDFSINodeDirectory(String name, PermissionStatus permissions) {
     super(name, permissions);
     this.children = null;
   }
 
-  public INodeDirectory(PermissionStatus permissions, long mTime) {
+  public MDFSINodeDirectory(PermissionStatus permissions, long mTime) {
     super(permissions, mTime, 0);
     this.children = null;
   }
 
   /** constructor */
-  INodeDirectory(byte[] localName, PermissionStatus permissions, long mTime) {
+  MDFSINodeDirectory(byte[] localName, PermissionStatus permissions, long mTime) {
     this(permissions, mTime);
     this.name = localName;
   }
@@ -57,7 +57,7 @@ class INodeDirectory extends INode {
    * 
    * @param other
    */
-  INodeDirectory(INodeDirectory other) {
+  MDFSINodeDirectory(MDFSINodeDirectory other) {
     super(other);
     this.children = other.getChildren();
   }
@@ -69,7 +69,7 @@ class INodeDirectory extends INode {
     return true;
   }
 
-  INode removeChild(INode node) {
+  MDFSINode removeChild(MDFSINode node) {
     assert children != null;
     int low = Collections.binarySearch(children, node.name);
     if (low >= 0) {
@@ -83,7 +83,7 @@ class INodeDirectory extends INode {
    * 
    * @param newChild Child node to be added
    */
-  void replaceChild(INode newChild) {
+  void replaceChild(MDFSINode newChild) {
     if ( children == null ) {
       throw new IllegalArgumentException("The directory is empty");
     }
@@ -95,11 +95,11 @@ class INodeDirectory extends INode {
     }
   }
   
-  INode getChild(String name) {
-    return getChildINode(DFSUtil.string2Bytes(name));
+  MDFSINode getChild(String name) {
+    return getChildMDFSINode(DFSUtil.string2Bytes(name));
   }
 
-  private INode getChildINode(byte[] name) {
+  private MDFSINode getChildMDFSINode(byte[] name) {
     if (children == null) {
       return null;
     }
@@ -112,26 +112,26 @@ class INodeDirectory extends INode {
 
   /**
    */
-  private INode getNode(byte[][] components) {
-    INode[] inode  = new INode[1];
-    getExistingPathINodes(components, inode);
+  private MDFSINode getNode(byte[][] components) {
+    MDFSINode[] inode  = new MDFSINode[1];
+    getExistingPathMDFSINodes(components, inode);
     return inode[0];
   }
 
   /**
    * This is the external interface
    */
-  INode getNode(String path) {
+  MDFSINode getNode(String path) {
     return getNode(getPathComponents(path));
   }
 
   /**
-   * Retrieve existing INodes from a path. If existing is big enough to store
-   * all path components (existing and non-existing), then existing INodes
-   * will be stored starting from the root INode into existing[0]; if
+   * Retrieve existing MDFSINodes from a path. If existing is big enough to store
+   * all path components (existing and non-existing), then existing MDFSINodes
+   * will be stored starting from the root MDFSINode into existing[0]; if
    * existing is not big enough to store all path components, then only the
-   * last existing and non existing INodes will be stored so that
-   * existing[existing.length-1] refers to the target INode.
+   * last existing and non existing MDFSINodes will be stored so that
+   * existing[existing.length-1] refers to the target MDFSINode.
    * 
    * <p>
    * Example: <br>
@@ -139,31 +139,31 @@ class INodeDirectory extends INode {
    * following path components: ["","c1","c2","c3"],
    * 
    * <p>
-   * <code>getExistingPathINodes(["","c1","c2"], [?])</code> should fill the
+   * <code>getExistingPathMDFSINodes(["","c1","c2"], [?])</code> should fill the
    * array with [c2] <br>
-   * <code>getExistingPathINodes(["","c1","c2","c3"], [?])</code> should fill the
+   * <code>getExistingPathMDFSINodes(["","c1","c2","c3"], [?])</code> should fill the
    * array with [null]
    * 
    * <p>
-   * <code>getExistingPathINodes(["","c1","c2"], [?,?])</code> should fill the
+   * <code>getExistingPathMDFSINodes(["","c1","c2"], [?,?])</code> should fill the
    * array with [c1,c2] <br>
-   * <code>getExistingPathINodes(["","c1","c2","c3"], [?,?])</code> should fill
+   * <code>getExistingPathMDFSINodes(["","c1","c2","c3"], [?,?])</code> should fill
    * the array with [c2,null]
    * 
    * <p>
-   * <code>getExistingPathINodes(["","c1","c2"], [?,?,?,?])</code> should fill
-   * the array with [rootINode,c1,c2,null], <br>
-   * <code>getExistingPathINodes(["","c1","c2","c3"], [?,?,?,?])</code> should
-   * fill the array with [rootINode,c1,c2,null]
+   * <code>getExistingPathMDFSINodes(["","c1","c2"], [?,?,?,?])</code> should fill
+   * the array with [rootMDFSINode,c1,c2,null], <br>
+   * <code>getExistingPathMDFSINodes(["","c1","c2","c3"], [?,?,?,?])</code> should
+   * fill the array with [rootMDFSINode,c1,c2,null]
    * @param components array of path component name
-   * @param existing INode array to fill with existing INodes
-   * @return number of existing INodes in the path
+   * @param existing MDFSINode array to fill with existing MDFSINodes
+   * @return number of existing MDFSINodes in the path
    */
-  int getExistingPathINodes(byte[][] components, INode[] existing) {
+  int getExistingPathMDFSINodes(byte[][] components, MDFSINode[] existing) {
     assert compareBytes(this.name, components[0]) == 0 :
       "Incorrect name " + getLocalName() + " expected " + components[0];
 
-    INode curNode = this;
+    MDFSINode curNode = this;
     int count = 0;
     int index = existing.length - components.length;
     if (index > 0)
@@ -173,8 +173,8 @@ class INodeDirectory extends INode {
         existing[index] = curNode;
       if (!curNode.isDirectory() || (count == components.length - 1))
         break; // no more child, stop here
-      INodeDirectory parentDir = (INodeDirectory)curNode;
-      curNode = parentDir.getChildINode(components[count + 1]);
+      MDFSINodeDirectory parentDir = (MDFSINodeDirectory)curNode;
+      curNode = parentDir.getChildMDFSINode(components[count + 1]);
       count += 1;
       index += 1;
     }
@@ -182,23 +182,23 @@ class INodeDirectory extends INode {
   }
 
   /**
-   * Retrieve the existing INodes along the given path. The first INode
-   * always exist and is this INode.
+   * Retrieve the existing MDFSINodes along the given path. The first MDFSINode
+   * always exist and is this MDFSINode.
    * 
    * @param path the path to explore
-   * @return INodes array containing the existing INodes in the order they
-   *         appear when following the path from the root INode to the
-   *         deepest INodes. The array size will be the number of expected
+   * @return MDFSINodes array containing the existing MDFSINodes in the order they
+   *         appear when following the path from the root MDFSINode to the
+   *         deepest MDFSINodes. The array size will be the number of expected
    *         components in the path, and non existing components will be
    *         filled with null
    *         
-   * @see #getExistingPathINodes(byte[][], INode[])
+   * @see #getExistingPathMDFSINodes(byte[][], MDFSINode[])
    */
-  INode[] getExistingPathINodes(String path) {
+  MDFSINode[] getExistingPathMDFSINodes(String path) {
     byte[][] components = getPathComponents(path);
-    INode[] inodes = new INode[components.length];
+    MDFSINode[] inodes = new MDFSINode[components.length];
 
-    this.getExistingPathINodes(components, inodes);
+    this.getExistingPathMDFSINodes(components, inodes);
     
     return inodes;
   }
@@ -206,12 +206,12 @@ class INodeDirectory extends INode {
   /**
    * Add a child inode to the directory.
    * 
-   * @param node INode to insert
+   * @param node MDFSINode to insert
    * @param inheritPermission inherit permission from parent?
    * @return  null if the child with this name already exists; 
    *          node, otherwise
    */
-  <T extends INode> T addChild(final T node, boolean inheritPermission) {
+  <T extends MDFSINode> T addChild(final T node, boolean inheritPermission) {
     if (inheritPermission) {
       FsPermission p = getFsPermission();
       //make sure the  permission has wx for the user
@@ -223,7 +223,7 @@ class INodeDirectory extends INode {
     }
 
     if (children == null) {
-      children = new ArrayList<INode>(DEFAULT_FILES_PER_DIRECTORY);
+      children = new ArrayList<MDFSINode>(DEFAULT_FILES_PER_DIRECTORY);
     }
     int low = Collections.binarySearch(children, node.name);
     if(low >= 0)
@@ -257,23 +257,23 @@ class INodeDirectory extends INode {
   
   /**
    * Equivalent to addNode(path, newNode, false).
-   * @see #addNode(String, INode, boolean)
+   * @see #addNode(String, MDFSINode, boolean)
    */
-  <T extends INode> T addNode(String path, T newNode) throws FileNotFoundException {
+  <T extends MDFSINode> T addNode(String path, T newNode) throws FileNotFoundException {
     return addNode(path, newNode, false);
   }
   /**
-   * Add new INode to the file tree.
+   * Add new MDFSINode to the file tree.
    * Find the parent and insert 
    * 
    * @param path file path
-   * @param newNode INode to be added
+   * @param newNode MDFSINode to be added
    * @param inheritPermission If true, copy the parent's permission to newNode.
-   * @return null if the node already exists; inserted INode, otherwise
+   * @return null if the node already exists; inserted MDFSINode, otherwise
    * @throws FileNotFoundException if parent does not exist or 
    * is not a directory.
    */
-  <T extends INode> T addNode(String path, T newNode, boolean inheritPermission
+  <T extends MDFSINode> T addNode(String path, T newNode, boolean inheritPermission
       ) throws FileNotFoundException {
     if(addToParent(path, newNode, null, inheritPermission) == null)
       return null;
@@ -284,15 +284,15 @@ class INodeDirectory extends INode {
    * Add new inode to the parent if specified.
    * Optimized version of addNode() if parent is not null.
    * 
-   * @return  parent INode if new inode is inserted
+   * @return  parent MDFSINode if new inode is inserted
    *          or null if it already exists.
    * @throws  FileNotFoundException if parent does not exist or 
    *          is not a directory.
    */
-  <T extends INode> INodeDirectory addToParent(
+  <T extends MDFSINode> MDFSINodeDirectory addToParent(
                                       String path,
                                       T newNode,
-                                      INodeDirectory parent,
+                                      MDFSINodeDirectory parent,
                                       boolean inheritPermission
                                     ) throws FileNotFoundException {
     byte[][] pathComponents = getPathComponents(path);
@@ -301,17 +301,17 @@ class INodeDirectory extends INode {
     if (pathLen < 2)  // add root
       return null;
     if(parent == null) {
-      // Gets the parent INode
-      INode[] inodes  = new INode[2];
-      getExistingPathINodes(pathComponents, inodes);
-      INode inode = inodes[0];
+      // Gets the parent MDFSINode
+      MDFSINode[] inodes  = new MDFSINode[2];
+      getExistingPathMDFSINodes(pathComponents, inodes);
+      MDFSINode inode = inodes[0];
       if (inode == null) {
         throw new FileNotFoundException("Parent path does not exist: "+path);
       }
       if (!inode.isDirectory()) {
         throw new FileNotFoundException("Parent path is not a directory: "+path);
       }
-      parent = (INodeDirectory)inode;
+      parent = (MDFSINodeDirectory)inode;
     }
     // insert into the parent children list
     newNode.name = pathComponents[pathLen-1];
@@ -324,7 +324,7 @@ class INodeDirectory extends INode {
   DirCounts spaceConsumedInTree(DirCounts counts) {
     counts.nsCount += 1;
     if (children != null) {
-      for (INode child : children) {
+      for (MDFSINode child : children) {
         child.spaceConsumedInTree(counts);
       }
     }
@@ -338,13 +338,13 @@ class INodeDirectory extends INode {
     assert 4 == summary.length;
     long[] subtreeSummary = new long[]{0,0,0,0};
     if (children != null) {
-      for (INode child : children) {
+      for (MDFSINode child : children) {
         child.computeContentSummary(subtreeSummary);
       }
     }
-    if (this instanceof INodeDirectoryWithQuota) {
+    if (this instanceof MDFSINodeDirectoryWithQuota) {
       // Warn if the cached and computed diskspace values differ
-      INodeDirectoryWithQuota node = (INodeDirectoryWithQuota)this;
+      MDFSINodeDirectoryWithQuota node = (MDFSINodeDirectoryWithQuota)this;
       long space = node.diskspaceConsumed();
       assert -1 == node.getDsQuota() || space == subtreeSummary[3];
       if (-1 != node.getDsQuota() && space != subtreeSummary[3]) {
@@ -364,10 +364,10 @@ class INodeDirectory extends INode {
 
   /**
    */
-  List<INode> getChildren() {
-    return children==null ? new ArrayList<INode>() : children;
+  List<MDFSINode> getChildren() {
+    return children==null ? new ArrayList<MDFSINode>() : children;
   }
-  List<INode> getChildrenRaw() {
+  List<MDFSINode> getChildrenRaw() {
     return children;
   }
 
@@ -376,7 +376,7 @@ class INodeDirectory extends INode {
     if (children == null) {
       return total;
     }
-    for (INode child : children) {
+    for (MDFSINode child : children) {
       total += child.collectSubtreeBlocksAndClear(v);
     }
     parent = null;

@@ -7,7 +7,7 @@ import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.server.namenode.BlocksMap.BlockInfo;
 
-class INodeFile extends INode {
+class MDFSINodeFile extends MDFSINode {
   static final FsPermission UMASK = FsPermission.createImmutable((short)0111);
 
   //Number of bits for Block size
@@ -26,19 +26,19 @@ class INodeFile extends INode {
 
   protected BlockInfo blocks[] = null;
 
-  INodeFile(PermissionStatus permissions,
+  MDFSINodeFile(PermissionStatus permissions,
             int nrBlocks, short replication, long modificationTime,
             long atime, long preferredBlockSize) {
     this(permissions, new BlockInfo[nrBlocks], replication,
         modificationTime, atime, preferredBlockSize);
   }
 
-  protected INodeFile() {
+  protected MDFSINodeFile() {
     blocks = null;
     header = 0;
   }
 
-  protected INodeFile(PermissionStatus permissions, BlockInfo[] blklist,
+  protected MDFSINodeFile(PermissionStatus permissions, BlockInfo[] blklist,
                       short replication, long modificationTime,
                       long atime, long preferredBlockSize) {
     super(permissions, modificationTime, atime);
@@ -48,7 +48,7 @@ class INodeFile extends INode {
   }
 
   /**
-   * Set the {@link FsPermission} of this {@link INodeFile}.
+   * Set the {@link FsPermission} of this {@link MDFSINodeFile}.
    * Since this is a file,
    * the {@link FsAction#EXECUTE} action, if any, is ignored.
    */
@@ -100,19 +100,19 @@ class INodeFile extends INode {
   /**
    * append array of blocks to this.blocks
    */
-  void appendBlocks(INodeFile [] inodes, int totalAddedBlocks) {
+  void appendBlocks(MDFSINodeFile [] inodes, int totalAddedBlocks) {
     int size = this.blocks.length;
     
     BlockInfo[] newlist = new BlockInfo[size + totalAddedBlocks];
     System.arraycopy(this.blocks, 0, newlist, 0, size);
     
-    for(INodeFile in: inodes) {
+    for(MDFSINodeFile in: inodes) {
       System.arraycopy(in.blocks, 0, newlist, size, in.blocks.length);
       size += in.blocks.length;
     }
     
     for(BlockInfo bi: this.blocks) {
-      bi.setINode(this);
+      bi.setMDFSINode(this);
     }
     this.blocks = newlist;
   }
@@ -145,7 +145,7 @@ class INodeFile extends INode {
     if (blocks != null && v != null) {
       for (BlockInfo blk : blocks) {
         v.add(blk);
-        blk.setINode(null);
+        blk.setMDFSINode(null);
       }
     }
     blocks = null;
