@@ -7,21 +7,13 @@ import java.util.List;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.permission.PermissionStatus;
-import org.apache.hadoop.hdfs.protocol.Block;
+import org.apache.hadoop.mdfs.protocol.Block;
 
 
-static class BlockInfo extends Block{
+class BlockInfo extends Block{
 	private MDFSINodeFile          inode;
 
 
-	/**
-	 *      * This array contains triplets of references.
-	 *           * For each i-th data-node the block belongs to
-	 *                * triplets[3*i] is the reference to the DatanodeDescriptor
-	 *                     * and triplets[3*i+1] and triplets[3*i+2] are references 
-	 *                          * to the previous and the next blocks, respectively, in the 
-	 *                               * list of blocks belonging to this data-node.
-	 *                                    */
 	private Object[] triplets;
 
 	BlockInfo(Block blk, int replication) {

@@ -16,16 +16,17 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.MD5MD5CRC32FileChecksum;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.mdfs.DFSUtil;
+import org.apache.hadoop.util.Progressable;
 
 
 
-public class MobileDistributedFileSystem extends FileSystem
-{
+public class MobileDistributedFileSystem extends FileSystem{
 	private Path workingDir;
 	private URI uri;
+	private AbstractMDFS mdfs;
 
-	static
-	{
+	static{
 		Configuration.addDefaultResource("hdfs-default.xml");
 		Configuration.addDefaultResource("hdfs-site.xml");
 	}
@@ -37,9 +38,13 @@ public class MobileDistributedFileSystem extends FileSystem
 
 	public URI getUri() { return uri; }
 
-	public void initialize(URI uri, Configuration conf) throws IOException 
-	{
+	public void initialize(URI uri, Configuration conf) throws IOException{
 		super.initialize(uri, conf);
+
+
+		if (mdfs == null) {
+			mdfs = new MDFSClient(conf);
+		}
 		setConf(conf);
 
 		String host = uri.getHost();
@@ -49,10 +54,10 @@ public class MobileDistributedFileSystem extends FileSystem
 
 		this.uri = URI.create(uri.getScheme()+"://"+uri.getAuthority());
 		this.workingDir = getHomeDirectory();
+
 	}
 
-	private Path makeAbsolute(Path f)
-	{
+	private Path makeAbsolute(Path f){
 		if (f.isAbsolute()) {
 			return f;
 		} else {
@@ -60,14 +65,12 @@ public class MobileDistributedFileSystem extends FileSystem
 		}
 	}
 
-	public Path getWorkingDirectory() 
-	{
+	public Path getWorkingDirectory(){
 		return workingDir;
 	}
 
 
-	public void setWorkingDirectory(Path dir)
-	{
+	public void setWorkingDirectory(Path dir){
 		String result = makeAbsolute(dir).toUri().getPath();
 		if (!DFSUtil.isValidName(result)) {
 			throw new IllegalArgumentException("Invalid MDFS directory name " + 
@@ -78,8 +81,7 @@ public class MobileDistributedFileSystem extends FileSystem
 
 
 
-	private String getPathName(Path file) 
-	{
+	private String getPathName(Path file){
 		checkPath(file);
 		String result = makeAbsolute(file).toUri().getPath();
 		if (!DFSUtil.isValidName(result)) {
@@ -90,26 +92,38 @@ public class MobileDistributedFileSystem extends FileSystem
 	}
 
 	@Override
-	public short getDefaultReplication() 
-	{
+	public short getDefaultReplication(){
 		//TODO choose number ofbest locations
-		LOG.error(" Not Implemented BlockSize");
-		return; 
+		LOG.error(" Not Implemented Block replication");
+		return 3; 
 	}
 
 	@Override
-	public long getDefaultBlockSize()
-	{
+	public long getDefaultBlockSize(){
 		//TODO choose default block Size
 		LOG.error(" Not Implemented BlockSize");
-		return;
+		return 4*1024*1024;
 	}
+
+	public FSDataInputStream open(Path path, int bufferSize) throws IOException {
+		path = makeAbsolute(path);
+
+
+		/* get file size */
+		MDFSFileStatus stat = new MDFSFileStatus();
+		mdfs.fstat(fd, stat);
+
+		MDFSInputStream istream = new MDFSInputStream(
+				stat.size, bufferSize);
+		return new FSDataInputStream(istream);
+	}
+
+
 
 	@Override
 	  public FSDataOutputStream create(Path path, FsPermission permission,
 			        boolean overwrite, int bufferSize, short replication, long blockSize,
-				      Progressable progress) throws IOException 
-	  {
+				      Progressable progress) throws IOException {
 		statistics.incrementWriteOps(1);
 
 		path = makeAbsolute(path);
@@ -138,14 +152,33 @@ public class MobileDistributedFileSystem extends FileSystem
 			progress.progress();
 		}
 		return new FSDataOutputStream
-			(new MDFSOutputStream(getPathName(f), permission, 
+			(new MDFSOutputStream(path, permission, 
 				    overwrite, false, replication, blockSize, progress, bufferSize), 
 			 statistics);
 	}
 
+
+	public FSDataOutputStream append(Path path, int bufferSize,
+			Progressable progress) throws IOException {
+		path = makeAbsolute(path);
+
+		if (progress != null) {
+			progress.progress();
+		}
+
+		//TODO append operation
+		//
+		if (progress != null) {
+			progress.progress();
+		}
+
+		return new FSDataOutputStream
+			(new MDFSOutputStream(path,progress, bufferSize),
+			 statistics);
+	}
+
 	@Override
-	public boolean mkdirs(Path path, FsPermission perms) throws IOException 
-	{
+	public boolean mkdirs(Path path, FsPermission perms) throws IOException {
 		path = makeAbsolute(path);
 
 		boolean result = false;
@@ -158,9 +191,12 @@ public class MobileDistributedFileSystem extends FileSystem
 
 		return result;
 	}
+	
+	public boolean delete(Path path) throws IOException {
+		return delete(path, false);
+	}
 
-	public boolean delete(Path path, boolean recursive) throws IOException
-       	{
+	public boolean delete(Path path, boolean recursive) throws IOException {
 		path = makeAbsolute(path);
 
 		/* path exists? */
@@ -174,7 +210,7 @@ public class MobileDistributedFileSystem extends FileSystem
 		/* we're done if its a file */
 		if (!status.isDir()) {
 			//TODO how to delete file
-			mdfs.rmfile(path);
+			mdfs.rmdir(path,false);
 			return true;
 		}
 
@@ -191,19 +227,18 @@ public class MobileDistributedFileSystem extends FileSystem
 				return false;
 		}
 
-		mdfs.rmdir(path);
+		mdfs.rmdir(path,true);
 		return true;
 	}
 
-	public FileStatus getFileStatus(Path path) throws IOException 
-	{
+	public FileStatus getFileStatus(Path path) throws IOException {
 		path = makeAbsolute(path);
 
 		MDFSFileStatus stat = new MDFSFileStatus();
 		mdfs.lstat(path, stat);
 
 		FileStatus status = new FileStatus(stat.size, stat.isDir(),
-				mdfs.get_file_replication(path), stat.blksize, stat.m_time,
+				stat.getReplication(), stat.blksize, stat.m_time,
 				stat.a_time, new FsPermission((short) stat.mode),
 				System.getProperty("user.name"), null, path.makeQualified(this));
 
@@ -211,8 +246,7 @@ public class MobileDistributedFileSystem extends FileSystem
 	}
 	   
 
-	public FileStatus[] listStatus(Path path) throws IOException
-	{
+	public FileStatus[] listStatus(Path path) throws IOException{
 		path = makeAbsolute(path);
 
 		String[] dirlist = mdfs.listdir(path);
@@ -231,18 +265,18 @@ public class MobileDistributedFileSystem extends FileSystem
 	}
 
 	@Override
-	public void setPermission(Path path, FsPermission permission) throws IOException
-	{
+	public void setPermission(Path path, FsPermission permission) throws IOException {
 		path = makeAbsolute(path);
 		mdfs.chmod(path, permission.toShort());
 	}
 
 	@Override
-	public void setTimes(Path path, long mtime, long atime) throws IOException 
-	{
+	public void setTimes(Path path, long mtime, long atime) throws IOException {
 		path = makeAbsolute(path);
+		int mask=0;//TODO modify mask
 
 		MDFSFileStatus stat = new MDFSFileStatus();
+		mdfs.lstat(path, stat);
 
 		if (mtime != -1) {
 			stat.m_time = mtime;
@@ -252,7 +286,52 @@ public class MobileDistributedFileSystem extends FileSystem
 			stat.a_time = atime;
 		}
 
-		mdfs.setattr(path, stat);
+		mdfs.setattr(path, stat,mask);
+	}
+
+
+	@Override
+	public boolean rename(Path src, Path dst) throws IOException {
+		src = makeAbsolute(src);
+		dst = makeAbsolute(dst);
+
+		try {
+			MDFSFileStatus stat = new MDFSFileStatus();
+			mdfs.stat(dst, stat);
+			if (stat.isDir())
+				return rename(src, new Path(dst, src.getName()));
+			return false;
+		} catch (FileNotFoundException e) {}
+
+		try {
+			mdfs.rename(src, dst);
+		} catch (FileNotFoundException e) {
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) throws IOException {
+		Path path = makeAbsolute(file.getPath());
+
+
+		/* Get block size */
+		MDFSFileStatus stat = new MDFSFIleStatus();
+		mdfs.lstat(path, stat);
+		long blockSize = stat.blksize;
+
+		BlockLocation[] locations = new BlockLocation[(int) Math.ceil(len / (float) blockSize)];
+
+		for (int i = 0; i < locations.length; ++i) {
+			long offset = start + i * blockSize;
+			long blockStart = start + i * blockSize - (start % blockSize);
+			locations[i] = new BlockLocation(null, null, blockStart, blockSize);
+			LOG.debug("getFileBlockLocations: location[" + i + "]: " + locations[i]);
+		}
+
+		return locations;
 	}
 
 }

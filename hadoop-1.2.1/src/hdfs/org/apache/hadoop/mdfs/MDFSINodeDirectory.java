@@ -25,8 +25,8 @@ import java.util.List;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.permission.PermissionStatus;
-import org.apache.hadoop.hdfs.DFSUtil;
-import org.apache.hadoop.hdfs.protocol.Block;
+import org.apache.hadoop.mdfs.DFSUtil;
+import org.apache.hadoop.mdfs.protocol.Block;
 
 /**
  * Directory MDFSINode class.

@@ -7,10 +7,8 @@ import java.util.List;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.*;
 import org.apache.hadoop.fs.ContentSummary;
-import org.apache.hadoop.hdfs.DFSUtil;
-import org.apache.hadoop.hdfs.protocol.Block;
-import org.apache.hadoop.hdfs.protocol.LocatedBlock;
-import org.apache.hadoop.hdfs.protocol.LocatedBlocks;
+import org.apache.hadoop.mdfs.DFSUtil;
+import org.apache.hadoop.mdfs.protocol.Block;
 import org.apache.hadoop.security.UserGroupInformation;
 
 /**
@@ -265,7 +263,7 @@ abstract class MDFSINode implements Comparable<byte[]>{
   /** {@inheritDoc} */
   public String getFullPathName() {
     // Get the full path name of this inode.
-    return FSDirectory.getFullPathName(this);
+    return MDFSINode.getFullPathName(this);
   }
 
   /** {@inheritDoc} */
@@ -364,6 +362,28 @@ abstract class MDFSINode implements Comparable<byte[]>{
     return bytes;
   }
 
+
+  static String getFullPathName(MDFSINode inode) {
+	  int depth = 0;
+	  for (MDFSINode i = inode; i != null; i = i.parent) {
+		  depth++;
+	  }
+	  MDFSINode[] inodes = new MDFSINode[depth];
+	  for (int i = 0; i < depth; i++) {
+		  inodes[depth-i-1] = inode;
+		  inode = inode.parent;
+	  }
+	  return getFullPathName(inodes, depth-1);
+  }
+
+  private static String getFullPathName(MDFSINode[] inodes, int pos) {
+	  StringBuilder fullPathName = new StringBuilder();
+	  for (int i=1; i<=pos; i++) {
+		  fullPathName.append(Path.SEPARATOR_CHAR).append(inodes[i].getLocalName());
+	  }
+	  return fullPathName.toString();
+  }
+
   /**
    * Breaks file path into names.
    * @param path
@@ -430,9 +450,4 @@ abstract class MDFSINode implements Comparable<byte[]>{
     return len1 - len2;
   }
   
-  
-  LocatedBlocks createLocatedBlocks(List<LocatedBlock> blocks) {
-    return new LocatedBlocks(computeContentSummary().getLength(), blocks,
-        isUnderConstruction());
-  }
 }
