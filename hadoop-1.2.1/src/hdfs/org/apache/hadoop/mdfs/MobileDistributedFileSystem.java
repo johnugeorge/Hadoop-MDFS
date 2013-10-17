@@ -142,6 +142,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 			else
 				throw new FileAlreadyExistsException();
 		} else {
+			LOG.info(" recursive create call . Parent doesn't exist ");
 			Path parent = path.getParent();
 			if (parent != null)
 				if (!mkdirs(parent, permission))
