@@ -4,15 +4,22 @@ import java.io.IOException;
 import java.net.URI;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.io.OutputStream;
+
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.util.Progressable;
 
-class MDFSClient extends AbstractMDFS {
+import org.apache.hadoop.fs.permission.FsPermission;
+
+class MDFSClient {
 
 	private short defaultReplication;
+	private boolean clientRunning;
+	private MDFSNameSystem namesystem;
 
 	public MDFSClient(Configuration conf) {
 	}
@@ -23,15 +30,36 @@ class MDFSClient extends AbstractMDFS {
 
 	void initialize(URI uri, Configuration conf) throws IOException {
 
+		clientRunning=true;
+		this.namesystem = MDFSNameSystem.getInstance(conf);
 	}
 
-	
+	private void checkOpen() throws IOException{
+		if(!clientRunning)
+			throw(new IOException("FileSystem Closed"));
+	}
+
+	OutputStream create(Path path,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize){
+		if (permission == null) {
+			permission = FsPermission.getDefault();
+		}
+
+		MDFSOutputStream result= new MDFSOutputStream(namesystem,pathString(path),flags,permission, createParent,replication,blockSize,progress,bufferSize);
+		return result;
+
+	}
+
+
 	int open(Path path, int flags, int mode) throws IOException {
+
+		return 0;
 	}
 
 
 
-	void lstat(Path path, MDFSFileStatus stat) throws IOException {
+	MDFSFileStatus lstat(Path path) throws IOException {
+		MDFSFileStatus stat= namesystem.lstat(pathString(path));
+		return stat;
 	}
 
 	void rmdir(Path path, boolean isDir) throws IOException {
@@ -45,7 +73,11 @@ class MDFSClient extends AbstractMDFS {
 		return null ;
 	}
 
-	void mkdirs(Path path, int mode) throws IOException {
+	void mkdirs(Path path, FsPermission permission) throws IOException {
+		if (permission == null) {
+			permission = FsPermission.getDefault();
+		}
+		namesystem.mkdirs(pathString(path),permission,false);
 	}
 
 	void close(int fd) throws IOException {

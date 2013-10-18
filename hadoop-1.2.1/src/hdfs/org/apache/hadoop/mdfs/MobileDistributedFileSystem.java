@@ -17,6 +17,7 @@ import org.apache.hadoop.fs.MD5MD5CRC32FileChecksum;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.mdfs.DFSUtil;
+import org.apache.hadoop.mdfs.MountFlags;
 import org.apache.hadoop.util.Progressable;
 
 
@@ -24,7 +25,7 @@ import org.apache.hadoop.util.Progressable;
 public class MobileDistributedFileSystem extends FileSystem{
 	private Path workingDir;
 	private URI uri;
-	private AbstractMDFS mdfs;
+	private MDFSClient mdfs;
 
 	static{
 		Configuration.addDefaultResource("hdfs-default.xml");
@@ -44,6 +45,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 		if (mdfs == null) {
 			mdfs = new MDFSClient(conf);
+			mdfs.initialize(uri,conf);
 		}
 		setConf(conf);
 
@@ -110,12 +112,12 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 
 		/* get file size */
-		MDFSFileStatus stat = new MDFSFileStatus();
-		mdfs.fstat(fd, stat);
+		MDFSFileStatus stat = mdfs.lstat(path);
 
-		MDFSInputStream istream = new MDFSInputStream(
-				stat.size, bufferSize);
-		return new FSDataInputStream(istream);
+//		MDFSInputStream istream = new MDFSInputStream(
+//				stat.getLen(), bufferSize);
+//		return new FSDataInputStream(istream);
+		return null;
 	}
 
 
@@ -129,32 +131,35 @@ public class MobileDistributedFileSystem extends FileSystem{
 		path = makeAbsolute(path);
 
 		boolean exists = exists(path);
+		int flags = MountFlags.O_WRONLY.getValue() | MountFlags.O_CREAT.getValue(); 
 
 		if (progress != null) {
 			progress.progress();
 		}
+
 
 		if (exists) {
 			if (overwrite)
 			{
-				//TODO
+				flags = flags|MountFlags.O_TRUNCAT.getValue();
 			}
 			else
-				throw new FileAlreadyExistsException();
+				throw new IOException("File Already Exists");
 		} else {
 			LOG.info(" recursive create call . Parent doesn't exist ");
-			Path parent = path.getParent();
+			/*Path parent = path.getParent();
 			if (parent != null)
 				if (!mkdirs(parent, permission))
-					throw new IOException("mkdirs failed for " + parent.toString());
+					throw new IOException("mkdirs failed for " + parent.toString());*/
 		}
 
 		if (progress != null) {
 			progress.progress();
 		}
+
 		return new FSDataOutputStream
-			(new MDFSOutputStream(path, permission, 
-				    overwrite, false, replication, blockSize, progress, bufferSize), 
+			(mdfs.create(path, flags,permission, 
+				     exists, replication, blockSize, progress, bufferSize), 
 			 statistics);
 	}
 
@@ -166,15 +171,16 @@ public class MobileDistributedFileSystem extends FileSystem{
 		if (progress != null) {
 			progress.progress();
 		}
-
-		//TODO append operation
-		//
+		int flags = MountFlags.O_WRONLY.getValue() |MountFlags.O_APPEND.getValue();
+		
 		if (progress != null) {
 			progress.progress();
 		}
 
+		MDFSFileStatus stat =mdfs.lstat(path);
+
 		return new FSDataOutputStream
-			(new MDFSOutputStream(path,progress, bufferSize),
+			(mdfs.create(path,flags,null,false,stat.getReplication(),stat.getBlockSize(),progress, bufferSize),
 			 statistics);
 	}
 
@@ -183,12 +189,8 @@ public class MobileDistributedFileSystem extends FileSystem{
 		path = makeAbsolute(path);
 
 		boolean result = false;
-		try {
-			mdfs.mkdirs(path, (int) perms.toShort());
-			result = true;
-		} catch (MDFSFileAlreadyExistsException e) {
-			result = true;
-		}
+		mdfs.mkdirs(path, perms);
+		result = true;
 
 		return result;
 	}
@@ -235,12 +237,11 @@ public class MobileDistributedFileSystem extends FileSystem{
 	public FileStatus getFileStatus(Path path) throws IOException {
 		path = makeAbsolute(path);
 
-		MDFSFileStatus stat = new MDFSFileStatus();
-		mdfs.lstat(path, stat);
+		MDFSFileStatus stat= mdfs.lstat(path);
 
-		FileStatus status = new FileStatus(stat.size, stat.isDir(),
-				stat.getReplication(), stat.blksize, stat.m_time,
-				stat.a_time, new FsPermission((short) stat.mode),
+		FileStatus status = new FileStatus(stat.getLen(), stat.isDir(),
+				stat.getReplication(), stat.getBlockSize(), stat.getModificationTime(),
+				stat.getAccessTime(), new FsPermission(stat.getPermission().toShort()),
 				System.getProperty("user.name"), null, path.makeQualified(this));
 
 		return status;
@@ -276,16 +277,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 		path = makeAbsolute(path);
 		int mask=0;//TODO modify mask
 
-		MDFSFileStatus stat = new MDFSFileStatus();
-		mdfs.lstat(path, stat);
-
-		if (mtime != -1) {
-			stat.m_time = mtime;
-		}
-
-		if (atime != -1) {
-			stat.a_time = atime;
-		}
+		MDFSFileStatus stat = mdfs.lstat(path);
 
 		mdfs.setattr(path, stat,mask);
 	}
@@ -297,8 +289,8 @@ public class MobileDistributedFileSystem extends FileSystem{
 		dst = makeAbsolute(dst);
 
 		try {
-			MDFSFileStatus stat = new MDFSFileStatus();
-			mdfs.stat(dst, stat);
+			MDFSFileStatus stat = mdfs.lstat(src);
+
 			if (stat.isDir())
 				return rename(src, new Path(dst, src.getName()));
 			return false;
@@ -319,9 +311,8 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 
 		/* Get block size */
-		MDFSFileStatus stat = new MDFSFIleStatus();
-		mdfs.lstat(path, stat);
-		long blockSize = stat.blksize;
+		MDFSFileStatus stat = mdfs.lstat(path);
+		long blockSize = stat.getBlockSize();
 
 		BlockLocation[] locations = new BlockLocation[(int) Math.ceil(len / (float) blockSize)];
 
