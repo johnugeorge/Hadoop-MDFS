@@ -237,6 +237,7 @@ class MDFSINodeDirectory extends MDFSINode {
     if (children == null) {
       children = new ArrayList<MDFSINode>(DEFAULT_FILES_PER_DIRECTORY);
     }
+
     int low = Collections.binarySearch(children, node.fileName);
     if(low >= 0)
       return null;
@@ -384,5 +385,17 @@ class MDFSINodeDirectory extends MDFSINode {
     parent = null;
     children = null;
     return total;
+  }
+
+
+  void printAllChildrenOfSubtrees() {
+    if (children == null) {
+      return;
+    }
+    for (MDFSINode child : children) {
+	        child.printAllChildrenOfSubtrees();
+		System.out.println(" Child of "+ child.getParent().getFileName()+"  is  "+ child.getFileName());         
+
+    }
   }
 }

@@ -92,10 +92,11 @@ abstract class MDFSINode implements Comparable<byte[]>{
   MDFSINode(PermissionStatus permissions,long mTime, long atime) {
     this.fileName = null;
     this.parent = null;
-    this.createdTime=0;
+    this.createdTime=mTime;
     this.fileName=null;
     setAccessTime(atime);
     setPermissionStatus(permissions);
+    setLastModifiedTime(mTime);
     this.isFragmented = false;
     this.isEncrypted = false;
   }
@@ -214,6 +215,7 @@ abstract class MDFSINode implements Comparable<byte[]>{
    * Also clears references since this MDFSINode is deleted.
    */
   abstract int collectSubtreeBlocksAndClear(List<Block> v);
+  abstract void printAllChildrenOfSubtrees();
 
   /**
    * @return an array of three longs. 

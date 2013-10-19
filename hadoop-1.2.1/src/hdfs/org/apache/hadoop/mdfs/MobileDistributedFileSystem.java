@@ -139,19 +139,14 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 
 		if (exists) {
-			if (overwrite)
-			{
+			if (overwrite){
+				System.out.println(" Overwriting the existing path "+path.toString());
 				flags = flags|MountFlags.O_TRUNCAT.getValue();
 			}
-			else
+			else{
 				throw new IOException("File Already Exists");
-		} else {
-			LOG.info(" recursive create call . Parent doesn't exist ");
-			/*Path parent = path.getParent();
-			if (parent != null)
-				if (!mkdirs(parent, permission))
-					throw new IOException("mkdirs failed for " + parent.toString());*/
-		}
+			}
+		} 
 
 		if (progress != null) {
 			progress.progress();
@@ -207,6 +202,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 		try {
 			status = getFileStatus(path);
 		} catch (FileNotFoundException e) {
+			System.out.println(" Not deleting the file as path doesn't exist "+path.toString());
 			return false;
 		}
 
@@ -219,8 +215,6 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 		/* get directory contents */
 		FileStatus[] dirlist = listStatus(path);
-		if (dirlist == null)
-			return false;
 
 		if (!recursive && dirlist.length > 0)
 			throw new IOException("Directory " + path.toString() + "is not empty.");
@@ -230,7 +224,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 				return false;
 		}
 
-		mdfs.rmdir(path,true);
+		mdfs.rmdir(path,false);
 		return true;
 	}
 
@@ -238,6 +232,10 @@ public class MobileDistributedFileSystem extends FileSystem{
 		path = makeAbsolute(path);
 
 		MDFSFileStatus stat= mdfs.lstat(path);
+
+		if(stat == null){
+			throw new FileNotFoundException();
+		}
 
 		FileStatus status = new FileStatus(stat.getLen(), stat.isDir(),
 				stat.getReplication(), stat.getBlockSize(), stat.getModificationTime(),

@@ -39,7 +39,7 @@ class MDFSClient {
 			throw(new IOException("FileSystem Closed"));
 	}
 
-	OutputStream create(Path path,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize){
+	OutputStream create(Path path,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException {
 		if (permission == null) {
 			permission = FsPermission.getDefault();
 		}
@@ -63,6 +63,8 @@ class MDFSClient {
 	}
 
 	void rmdir(Path path, boolean isDir) throws IOException {
+
+		namesystem.delete(pathString(path),isDir);
 	}
 
 
@@ -70,7 +72,7 @@ class MDFSClient {
 	}
 
 	String[] listdir(Path path) throws IOException {
-		return null ;
+		return namesystem.listDir(pathString(path));
 	}
 
 	void mkdirs(Path path, FsPermission permission) throws IOException {

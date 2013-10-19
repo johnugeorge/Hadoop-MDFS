@@ -48,11 +48,21 @@ class MDFSINodeFile extends MDFSINode {
 
   protected BlockInfo blocks[] = null;
 
-  MDFSINodeFile(PermissionStatus permissions,
+/*  MDFSINodeFile(PermissionStatus permissions,
             int nrBlocks, short replication, long modificationTime,
             long atime, long preferredBlockSize) {
     this(permissions, new BlockInfo[nrBlocks], replication,
         modificationTime, atime, preferredBlockSize);
+  }
+*/
+
+  MDFSINodeFile(FsPermission permissions,
+		  int nrBlocks, short replication, long preferredBlockSize) {
+    super("", permissions);
+    blocks = new BlockInfo[nrBlocks];
+    this.setReplication(replication);
+    this.setPreferredBlockSize(preferredBlockSize);
+
   }
 
   protected MDFSINodeFile() {
@@ -60,7 +70,7 @@ class MDFSINodeFile extends MDFSINode {
     blocks = null;
     header = 0;
   }
-
+/*
   protected MDFSINodeFile(PermissionStatus permissions, BlockInfo[] blklist,
                       short replication, long modificationTime,
                       long atime, long preferredBlockSize) {
@@ -69,7 +79,7 @@ class MDFSINodeFile extends MDFSINode {
     this.setPreferredBlockSize(preferredBlockSize);
     blocks = blklist;
   }
-
+*/
   /**
    * Set the {@link FsPermission} of this {@link MDFSINodeFile}.
    * Since this is a file,
@@ -173,6 +183,10 @@ class MDFSINodeFile extends MDFSINode {
     }
     blocks = null;
     return 1;
+  }
+
+  void printAllChildrenOfSubtrees() {
+
   }
 
   /** {@inheritDoc} */

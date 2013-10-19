@@ -23,17 +23,15 @@ public class MDFSOutputStream extends OutputStream {
 	private MDFSNameSystem namesystem;
 
 
-	MDFSOutputStream(MDFSNameSystem namesystem,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize){
+	MDFSOutputStream(MDFSNameSystem namesystem,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.blockReplication = replication;
 		this.progress = progress;
 		this.namesystem = namesystem;
 
-		if(createParent){
-			namesystem.addNewFile(src,flags,permission,replication,blockSize);
+		namesystem.addNewFile(src,flags,createParent,permission,replication,blockSize);
 			//addInode
-		}
 	}
 
 	 @Override

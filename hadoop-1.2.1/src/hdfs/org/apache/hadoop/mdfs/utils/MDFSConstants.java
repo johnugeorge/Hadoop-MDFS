@@ -2,16 +2,21 @@ package org.apache.hadoop.mdfs;
 
 
 enum MountFlags {
-	O_WRONLY (1<<1), O_CREAT (1<<2),O_RDONLY (1<<3) ,O_TRUNCAT (1<<4),O_APPEND(1<<5);
+	O_WRONLY (1), O_CREAT (2),O_RDONLY (3) ,O_TRUNCAT (4),O_APPEND(5);
 
-
+	private int enumVal;
 	private int value;
 
 	MountFlags(int numVal) {
-		this.value = numVal;
+		this.enumVal=numVal;
+		this.value = 1<<numVal;
 	}
 
 	public int getValue() {
 		return value;
+	}
+
+	public boolean isSet(int value){
+		return ((value & (1<<enumVal)) != 0)?true:false;
 	}
 }
