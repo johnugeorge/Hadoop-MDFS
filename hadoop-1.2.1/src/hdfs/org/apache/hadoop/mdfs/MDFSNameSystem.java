@@ -29,7 +29,13 @@ public class MDFSNameSystem{
 	}
 
 	public boolean mkdirs(String src, FsPermission permissions,boolean inheritPermission) throws IOException {
-		boolean status = mdfsDir.mkdirs(src,permissions,inheritPermission);
+
+		boolean status=true;
+		if(mdfsDir.isDir(src)){
+			System.out.println(" Directory already exists "+src+" Hence not creating");
+			return true;
+		}
+		status = mdfsDir.mkdirs(src,permissions,inheritPermission);
 		return status;
 	}
 

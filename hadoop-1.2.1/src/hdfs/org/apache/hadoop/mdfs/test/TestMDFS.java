@@ -40,6 +40,8 @@ class TestMDFS{
 		fs.mkdirs(path,FsPermission.getDefault());
 		path=new Path("/dir3/File31");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
+		path=new Path("/dir3/dir33/File331");
+		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir3/File32");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir0/data01/File011");
@@ -52,9 +54,11 @@ class TestMDFS{
 		fs.create(path,FsPermission.getDefault(),true,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir1/");
 		fs.delete(path,true);
-		path=new Path("/dir3");
+		path=new Path("/dir5");
 		fs.delete(path,true);
-		path=new Path("/dir3");
+		path=new Path("/dir3/dir33/File331");
+		fs.delete(path,true);
+		path=new Path("/dir0");
 		fs.mkdirs(path,FsPermission.getDefault());
 		MDFSDirectory.printAllChildrenOfSubtrees();
 

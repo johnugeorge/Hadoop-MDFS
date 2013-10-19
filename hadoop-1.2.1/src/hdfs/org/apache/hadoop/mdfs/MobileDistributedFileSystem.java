@@ -154,7 +154,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 		return new FSDataOutputStream
 			(mdfs.create(path, flags,permission, 
-				     exists, replication, blockSize, progress, bufferSize), 
+				     true, replication, blockSize, progress, bufferSize), 
 			 statistics);
 	}
 
