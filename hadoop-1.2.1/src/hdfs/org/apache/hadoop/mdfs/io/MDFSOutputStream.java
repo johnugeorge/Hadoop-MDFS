@@ -1,4 +1,4 @@
-package org.apache.hadoop.mdfs.protocol;
+package org.apache.hadoop.mdfs.io;
 
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class MDFSOutputStream extends OutputStream {
 	private MDFSNameSystem namesystem;
 
 
-	MDFSOutputStream(MDFSNameSystem namesystem,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
+	public MDFSOutputStream(MDFSNameSystem namesystem,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.blockReplication = replication;

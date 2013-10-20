@@ -1,7 +1,7 @@
 package org.apache.hadoop.mdfs.test;
 
 import org.apache.hadoop.mdfs.MobileDistributedFileSystem;
-import org.apache.hadoop.mdfs.MDFSDirectory;
+import org.apache.hadoop.mdfs.protocol.MDFSDirectory;
 import java.net.URI;
 
 import org.apache.hadoop.fs.Path;

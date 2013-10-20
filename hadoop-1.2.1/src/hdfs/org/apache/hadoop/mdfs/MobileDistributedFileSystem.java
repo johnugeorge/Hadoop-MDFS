@@ -19,6 +19,7 @@ import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.mdfs.utils.DFSUtil;
 import org.apache.hadoop.mdfs.utils.MountFlags;
+import org.apache.hadoop.mdfs.protocol.MDFSFileStatus;
 import org.apache.hadoop.util.Progressable;
 
 

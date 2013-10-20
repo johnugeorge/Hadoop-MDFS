@@ -12,7 +12,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.util.Progressable;
-
+import org.apache.hadoop.mdfs.protocol.MDFSNameSystem;
+import org.apache.hadoop.mdfs.protocol.MDFSFileStatus;
+import org.apache.hadoop.mdfs.io.MDFSOutputStream;
 import org.apache.hadoop.fs.permission.FsPermission;
 
 class MDFSClient {

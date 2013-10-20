@@ -80,7 +80,7 @@ public class MDFSNameSystem{
 	}
 
 
-	MDFSFileStatus lstat(String src) throws IOException {
+	public MDFSFileStatus lstat(String src) throws IOException {
 		MDFSFileStatus stat= mdfsDir.getFileInfo(src);
 		return stat;
 	}
@@ -105,7 +105,7 @@ public class MDFSNameSystem{
 
 	}
 
-	String[] listDir(String src) throws IOException {
+	public String[] listDir(String src) throws IOException {
 		return mdfsDir.listDir(src);
 	}
 
