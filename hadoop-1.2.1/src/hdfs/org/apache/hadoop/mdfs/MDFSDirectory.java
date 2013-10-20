@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.mdfs.DFSUtil;
@@ -31,7 +32,9 @@ public class MDFSDirectory{
 	}
 
 	public static void printAllChildrenOfSubtrees(){
+		System.out.println(" ======================");
 		System.out.println(" Printing Complete tree");
+		System.out.println(" ======================");
 		rootDir.printAllChildrenOfSubtrees();
 
 	}
@@ -142,10 +145,10 @@ public class MDFSDirectory{
 			if (parent != null) {
 				MDFSINode[] pathINodes = rootDir.getExistingPathMDFSINodes(parent.toString());
 				if (pathINodes[pathINodes.length - 1] == null) {
-					throw new IOException("Parent directory doesn't exist: "
+					throw new FileNotFoundException("Parent directory doesn't exist: "
 							+ parent.toString());
 				} else if (!pathINodes[pathINodes.length - 1].isDirectory()) {
-					throw new IOException("Parent path is not a directory: "
+					throw new FileAlreadyExistsException("Parent path is not a directory: "
 							+ parent.toString());
 				}
 			}
@@ -198,7 +201,7 @@ public class MDFSDirectory{
 		MDFSINode targetNode = inodes[inodes.length-1];
 
 		if (targetNode == null) { // non-existent src
-			throw new IOException("failed to remove "+src+" because it does not exist");
+			throw new FileNotFoundException("failed to remove "+src+" because it does not exist");
 		} 
 		if (inodes.length == 1) { // src is the root
 			throw new IOException("failed to remove " + src +" because the root is not allowed to be deleted");

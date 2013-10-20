@@ -1,11 +1,13 @@
 package org.apache.hadoop.mdfs;
 
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.mdfs.DFSUtil;
 import org.apache.hadoop.mdfs.MountFlags;
 import org.apache.hadoop.mdfs.protocol.Block;
@@ -32,8 +34,7 @@ public class MDFSNameSystem{
 
 		boolean status=true;
 		if(mdfsDir.isDir(src)){
-			System.out.println(" Directory already exists "+src+" Hence not creating");
-			return true;
+			throw new FileAlreadyExistsException(" Directory already exists "+src+" Hence not creating");
 		}
 		status = mdfsDir.mkdirs(src,permissions,inheritPermission);
 		return status;
@@ -48,7 +49,7 @@ public class MDFSNameSystem{
 		boolean append = MountFlags.O_APPEND.isSet(flags);
 		boolean overwrite = MountFlags.O_TRUNCAT.isSet(flags);
 		if (pathExists && mdfsDir.isDir(src)) {
-			throw new IOException("Cannot create "+ src + "; already exists as a directory");
+			throw new FileAlreadyExistsException("Cannot create "+ src + "; already exists as a directory");
 		}
 		if(!createParent)
 			mdfsDir.verifyParentDir(src);
@@ -56,7 +57,7 @@ public class MDFSNameSystem{
 		MDFSINode myFile = mdfsDir.getFileINode(src);
 		if (append) {
 			if (myFile == null) {
-				throw new IOException("failed to append to non-existent path "+ src );
+				throw new FileNotFoundException("failed to append to non-existent path "+ src );
 			} else if (myFile.isDirectory()) {
 				throw new IOException("failed to append since source is a directory" + src);
 			}

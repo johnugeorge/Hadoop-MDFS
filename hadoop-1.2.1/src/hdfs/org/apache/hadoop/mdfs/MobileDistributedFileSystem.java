@@ -15,6 +15,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.MD5MD5CRC32FileChecksum;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.mdfs.DFSUtil;
 import org.apache.hadoop.mdfs.MountFlags;
@@ -144,7 +145,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 				flags = flags|MountFlags.O_TRUNCAT.getValue();
 			}
 			else{
-				throw new IOException("File Already Exists");
+				throw new FileAlreadyExistsException("File Already Exists "+path.toString());
 			}
 		} 
 
@@ -183,9 +184,8 @@ public class MobileDistributedFileSystem extends FileSystem{
 	public boolean mkdirs(Path path, FsPermission perms) throws IOException {
 		path = makeAbsolute(path);
 
-		boolean result = false;
+		boolean result = true;
 		mdfs.mkdirs(path, perms);
-		result = true;
 
 		return result;
 	}
@@ -202,8 +202,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 		try {
 			status = getFileStatus(path);
 		} catch (FileNotFoundException e) {
-			System.out.println(" Not deleting the file as path doesn't exist "+path.toString());
-			return false;
+			throw new FileNotFoundException(" Not deleting the file as path doesn't exist "+path.toString());
 		}
 
 		/* we're done if its a file */
@@ -217,7 +216,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 		FileStatus[] dirlist = listStatus(path);
 
 		if (!recursive && dirlist.length > 0)
-			throw new IOException("Directory " + path.toString() + "is not empty.");
+			throw new IOException("Directory " + path.toString() + " is not empty.");
 
 		for (FileStatus fs : dirlist) {
 			if (!delete(fs.getPath(), recursive))
