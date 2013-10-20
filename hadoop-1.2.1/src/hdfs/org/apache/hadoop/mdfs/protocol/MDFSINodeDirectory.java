@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.mdfs;
+package org.apache.hadoop.mdfs.protocol;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.List;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.permission.PermissionStatus;
-import org.apache.hadoop.mdfs.DFSUtil;
+import org.apache.hadoop.mdfs.utils.DFSUtil;
 import org.apache.hadoop.mdfs.protocol.Block;
 
 /**

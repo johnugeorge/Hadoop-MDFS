@@ -1,4 +1,4 @@
-package org.apache.hadoop.mdfs;
+package org.apache.hadoop.mdfs.protocol;
 
 
 import java.io.IOException;

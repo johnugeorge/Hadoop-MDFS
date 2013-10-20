@@ -1,4 +1,4 @@
-package org.apache.hadoop.mdfs;
+package org.apache.hadoop.mdfs.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;

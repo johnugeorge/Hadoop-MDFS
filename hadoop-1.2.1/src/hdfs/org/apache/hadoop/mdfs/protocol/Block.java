@@ -19,7 +19,6 @@ package org.apache.hadoop.mdfs.protocol;
 
 import java.io.*;
 
-import org.apache.hadoop.hdfs.server.common.GenerationStamp;
 import org.apache.hadoop.io.*;
 
 /**************************************************

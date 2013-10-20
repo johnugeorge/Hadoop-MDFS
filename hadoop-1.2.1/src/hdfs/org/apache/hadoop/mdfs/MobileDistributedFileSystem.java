@@ -17,8 +17,8 @@ import org.apache.hadoop.fs.MD5MD5CRC32FileChecksum;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.mdfs.DFSUtil;
-import org.apache.hadoop.mdfs.MountFlags;
+import org.apache.hadoop.mdfs.utils.DFSUtil;
+import org.apache.hadoop.mdfs.utils.MountFlags;
 import org.apache.hadoop.util.Progressable;
 
 

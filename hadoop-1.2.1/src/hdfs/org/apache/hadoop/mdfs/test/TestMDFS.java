@@ -67,23 +67,19 @@ class TestMDFS{
 		//fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir1/");
 		fs.delete(path,true);
-		MDFSDirectory.printAllChildrenOfSubtrees();
 		path=new Path("/dir2/");
 		fs.delete(path,true);
-		MDFSDirectory.printAllChildrenOfSubtrees();
 		path=new Path("/dir6/");
 		fs.delete(path,false);
-		MDFSDirectory.printAllChildrenOfSubtrees();
 		//path=new Path("/dir5"); //dir not exist
 		//fs.delete(path,true);
 		path=new Path("/dir3/dir33/File331");
 		fs.delete(path,true);
-		MDFSDirectory.printAllChildrenOfSubtrees();
 		path=new Path("/dir3/dir33/File332");
 		fs.delete(path,false);
 		path=new Path("/dir7/File71");
 		fs.delete(path,false);
-		path=new Path("/dir7/");//directory not empty
+		path=new Path("/dir7/");
 		fs.delete(path,false);
 		//path=new Path("/dir3/");//directory not empty
 		//fs.delete(path,false);

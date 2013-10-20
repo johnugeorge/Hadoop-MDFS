@@ -1,4 +1,4 @@
-package org.apache.hadoop.mdfs;
+package org.apache.hadoop.mdfs.protocol;
 
 
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.permission.*;
 import org.apache.hadoop.fs.ContentSummary;
-import org.apache.hadoop.mdfs.DFSUtil;
+import org.apache.hadoop.mdfs.utils.DFSUtil;
 import org.apache.hadoop.mdfs.protocol.Block;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.commons.logging.*;
