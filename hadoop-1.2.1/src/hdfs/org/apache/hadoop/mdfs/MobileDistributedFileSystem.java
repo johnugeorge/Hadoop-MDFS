@@ -264,6 +264,30 @@ public class MobileDistributedFileSystem extends FileSystem{
 		return null;
 	}
 
+	public void printTree(Path path,boolean recursive) throws IOException{
+		path = makeAbsolute(path);
+
+		if (isFile(path)){
+			System.out.println(getFileStatus(path));
+			return;
+		}
+
+		String[] dirlist = mdfs.listdir(path);
+		for(String str:dirlist)
+			System.out.println(" Child  of path "+path.toString()+" is "+str); 
+		if (dirlist != null) {
+			System.out.println(getFileStatus(path));
+			FileStatus[] status = new FileStatus[dirlist.length];
+			for (int i = 0; i < status.length; i++) {
+				printTree(new Path(path, dirlist[i]),recursive);
+			}
+			return;
+		}
+
+
+		return;
+	}
+
 	@Override
 	public void setPermission(Path path, FsPermission permission) throws IOException {
 		path = makeAbsolute(path);

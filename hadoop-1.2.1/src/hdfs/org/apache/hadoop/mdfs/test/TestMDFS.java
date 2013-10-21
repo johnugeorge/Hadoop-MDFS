@@ -5,8 +5,10 @@ import org.apache.hadoop.mdfs.protocol.MDFSDirectory;
 import java.net.URI;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.permission.FsPermission;
-
+import java.io.*;
+import org.apache.hadoop.io.DataInputBuffer;
 
 
 class TestMDFS{
@@ -63,6 +65,7 @@ class TestMDFS{
 		path=new Path("/dir7/File71");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		MDFSDirectory.printAllChildrenOfSubtrees();
+		fs.printTree(new Path("/"),true);
 		//path=new Path("/dir0/File0"); // File already exists
 		//fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir1/");
@@ -88,6 +91,19 @@ class TestMDFS{
 		MDFSDirectory.printAllChildrenOfSubtrees();
 
 
+
+	}
+
+	static void printFileStatus (FileStatus fileStatus)throws IOException,UnsupportedEncodingException
+	{
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream(64);
+		DataInputBuffer in = new DataInputBuffer();
+
+		buffer.reset();
+		DataOutputStream out = new DataOutputStream(buffer);
+		fileStatus.write(out);
+
+		in.reset(buffer.toByteArray(), 0, buffer.size());
 
 	}
 }
