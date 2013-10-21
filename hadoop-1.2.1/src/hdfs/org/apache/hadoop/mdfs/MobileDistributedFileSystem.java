@@ -253,13 +253,16 @@ public class MobileDistributedFileSystem extends FileSystem{
 		if (dirlist != null) {
 			FileStatus[] status = new FileStatus[dirlist.length];
 			for (int i = 0; i < status.length; i++) {
+				System.out.println(getFileStatus(new Path(path, dirlist[i])));
 				status[i] = getFileStatus(new Path(path, dirlist[i]));
 			}
 			return status;
 		}
 
-		if (isFile(path))
+		if (isFile(path)){
+			System.out.println(getFileStatus(path));
 			return new FileStatus[] { getFileStatus(path) };
+		}
 
 		return null;
 	}

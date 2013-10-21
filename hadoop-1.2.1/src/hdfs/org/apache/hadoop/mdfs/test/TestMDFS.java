@@ -89,6 +89,8 @@ class TestMDFS{
 		//path=new Path("/dir0"); //dir already exist
 		//fs.mkdirs(path,FsPermission.getDefault());
 		MDFSDirectory.printAllChildrenOfSubtrees();
+		fs.listStatus(new Path("/"));
+		fs.listStatus(new Path("/dir3"));
 
 
 
