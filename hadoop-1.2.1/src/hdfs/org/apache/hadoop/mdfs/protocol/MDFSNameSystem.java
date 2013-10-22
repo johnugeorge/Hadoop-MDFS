@@ -109,7 +109,9 @@ public class MDFSNameSystem{
 		return mdfsDir.listDir(src);
 	}
 
-
+	public boolean rename(String src,String dest) throws IOException {
+		return mdfsDir.rename(src,dest);
+	}
 }
 
 

@@ -244,6 +244,63 @@ public class MDFSDirectory{
 
 	}
 
+	public boolean rename(String src,String dst) throws IOException {
+
+		MDFSINode[] srcInodes = rootDir.getExistingPathMDFSINodes(src);
+		if (srcInodes[srcInodes.length-1] == null) {
+			throw new FileNotFoundException("failed to rename " + src + " to " + dst+ " because source does not exist");
+		} 
+		if (srcInodes.length == 1) {
+			 throw new IOException("failed to rename "+src+" to "+dst+ " because source is the root");
+		}
+		if (dst.equals(src)) {
+			throw new FileAlreadyExistsException("failed to rename. source "+src +" is same as destination");
+		}
+		if (dst.startsWith(src) && dst.charAt(src.length()) == Path.SEPARATOR_CHAR) {
+			throw new IOException("failed to rename " + src + " to " + dst+ " because destination starts with src");
+		}
+
+		byte[][] dstComponents = MDFSINode.getPathComponents(dst);
+		MDFSINode[] dstInodes = new MDFSINode[dstComponents.length];
+		rootDir.getExistingPathMDFSINodes(dstComponents, dstInodes);       
+		if (dstInodes[dstInodes.length-1] != null) {
+			throw new FileAlreadyExistsException("failed to rename " + src + " to " + dst+ " because destination exists");
+		}
+		if (dstInodes[dstInodes.length-2] == null) {
+			throw new FileNotFoundException("failed to rename  because destination's parent does not exist "+  dst);
+		}
+
+		MDFSINode dstChild = null;
+		MDFSINode srcChild = null;
+		String srcChildName = null; 
+
+		int pos=srcInodes.length -1;
+
+		srcChild = ((MDFSINodeDirectory)srcInodes[pos-1]).removeChild(srcInodes[pos]);
+
+		if(srcChild == null)
+			throw new IOException(" Cannot rename source "+src +" dest "+ dst);
+
+		srcChildName = srcChild.getFileName();
+		srcChild.setLocalName(dstComponents[dstInodes.length-1]);
+
+		pos= dstInodes.length - 1;
+		MDFSINode addedNode = ((MDFSINodeDirectory)dstInodes[pos-1]).addChild(
+				        srcChild, true);
+
+		//put the child back to src
+		if(addedNode == null && srcChild != null){
+			 srcChild.setLocalName(srcChildName);
+			 pos=srcInodes.length -1;
+			 ((MDFSINodeDirectory)srcInodes[pos-1]).addChild(
+				        srcChild, true);
+			 throw new IOException("Source is not renamed. Henc source is added back ");
+		}
+		return true;
+
+	}
+
+
 
 
 

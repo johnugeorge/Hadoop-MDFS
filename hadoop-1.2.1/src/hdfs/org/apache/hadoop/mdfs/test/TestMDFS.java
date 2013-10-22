@@ -64,7 +64,7 @@ class TestMDFS{
 		fs.create(path,FsPermission.getDefault(),true,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir7/File71");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
-		MDFSDirectory.printAllChildrenOfSubtrees();
+		//MDFSDirectory.printAllChildrenOfSubtrees();
 		fs.printTree(new Path("/"),true);
 		//path=new Path("/dir0/File0"); // File already exists
 		//fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
@@ -88,9 +88,26 @@ class TestMDFS{
 		//fs.delete(path,false);
 		//path=new Path("/dir0"); //dir already exist
 		//fs.mkdirs(path,FsPermission.getDefault());
-		MDFSDirectory.printAllChildrenOfSubtrees();
+		//MDFSDirectory.printAllChildrenOfSubtrees();
 		fs.listStatus(new Path("/"));
+		System.out.println(" ");
 		fs.listStatus(new Path("/dir3"));
+		System.out.println(" ");
+		MDFSDirectory.printAllChildrenOfSubtrees();
+		System.out.println(" ");
+		fs.rename(new Path("/dir3/File33"),new Path("/dir3/File33_renamed"));
+		//fs.rename(new Path("/dir3/File33"),new Path("/dir3/File33_new"));//no src file
+		fs.rename(new Path("/dir3/File33_renamed"),new Path("/"));
+		//fs.rename(new Path("/File33_renamed"),new Path("/"));//src is same as destination
+		fs.rename(new Path("/File33_renamed"),new Path("/dir0"));
+		fs.rename(new Path("/dir0/File33_renamed"),new Path("/dir3/File33_new"));
+		//fs.printTree(new Path("/"), true);
+		fs.rename(new Path("/dir3/File33_new"),new Path("/File7"));//dir doesn't exist
+		//fs.rename(new Path("/dir0/File0"),new Path("/dir8/File0_new"));//destination parent dir doesn't exist
+		fs.rename(new Path("/File7"),new Path("/dir3/"));
+		fs.rename(new Path("/dir3"),new Path("/dir8/"));
+		fs.rename(new Path("/dir8"),new Path("/dir3/"));
+		MDFSDirectory.printAllChildrenOfSubtrees();
 
 
 

@@ -313,18 +313,24 @@ public class MobileDistributedFileSystem extends FileSystem{
 		src = makeAbsolute(src);
 		dst = makeAbsolute(dst);
 
-		try {
-			MDFSFileStatus stat = mdfs.lstat(src);
+		if (!DFSUtil.isValidName(dst.toString())) {
+			throw new IOException("Invalid Destination name for rename: " + dst);
+		}
 
-			if (stat.isDir())
+		//Verify if file is moved instead of rename
+		try {
+			MDFSFileStatus stat = mdfs.lstat(dst);
+			if (stat!=null && stat.isDir())
 				return rename(src, new Path(dst, src.getName()));
-			return false;
-		} catch (FileNotFoundException e) {}
+		} catch (FileNotFoundException e) {
+
+		}
 
 		try {
 			mdfs.rename(src, dst);
+
 		} catch (FileNotFoundException e) {
-			return false;
+			        throw new FileNotFoundException(e.getMessage());
 		}
 
 		return true;

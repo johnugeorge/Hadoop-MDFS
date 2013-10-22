@@ -71,6 +71,8 @@ class MDFSClient {
 
 
 	void rename(Path src, Path dst) throws IOException {
+		System.out.println(" src "+ pathString(src) +" dst " +pathString(dst) );
+		namesystem.rename(pathString(src),pathString(dst));
 	}
 
 	String[] listdir(Path path) throws IOException {
