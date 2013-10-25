@@ -4,6 +4,7 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import java.net.URI;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.permission.FsPermission;
 import java.io.*;
@@ -20,16 +21,22 @@ class TestHDFS{
 		Configuration conf = new Configuration();
 		conf.addResource(new Path("/home/johnugeorge/workspace/Hadoop-mdfs/hadoop-1.2.1/conf/core-site.xml"));
 		conf.addResource(new Path("/home/johnugeorge/workspace/Hadoop-mdfs/hadoop-1.2.1/conf/hdfs-site.xml"));
-		fs.initialize(URI.create("hdfs://localhost:9000"),conf);
+		//FileSystem fs = FileSystem.get(conf);
+
+		fs.initialize(URI.create("hdfs://clusterNode1.local:9000"),conf);
 
 		Path path=new Path("/dir0");
 		fs.mkdirs(path,FsPermission.getDefault());
+		System.out.println(" Created  dir");
 		path=new Path("/dir0/data01");
 		fs.mkdirs(path,FsPermission.getDefault());
+		System.out.println(" Created ");
 		path=new Path("/dir0/data02");
 		fs.mkdirs(path,FsPermission.getDefault());
+		System.out.println(" Created ");
 		path=new Path("/dir0/data01/data012");
 		fs.mkdirs(path,FsPermission.getDefault());
+		System.out.println(" Created ");
 		path=new Path("/dir0/data01/data013");
 		fs.mkdirs(path,FsPermission.getDefault());
 		//path=new Path("/dir0/data01");        //dir already exists
@@ -51,28 +58,35 @@ class TestHDFS{
 		path=new Path("/dir3/dir31/dir311");
 		fs.mkdirs(path,FsPermission.getDefault());
 		path=new Path("/dir3/File31");
-		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
+		fs.create(path,FsPermission.getDefault(),false,(int)512,(short)1,(long)4*1024*1024,null);
+		System.out.println(" Created  File");
 		path=new Path("/dir3/dir33/File331");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
+		System.out.println(" Created  File");
 		path=new Path("/dir3/dir33/File332");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir3/File32");
+		System.out.println(" Created  File");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir0/data01/File011");
+		System.out.println(" Created  File");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir0/File0");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir3/File33");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
-		path=new Path("/dir3/File33");//overwrite=true
-		fs.create(path,FsPermission.getDefault(),true,(int)0,(short)1,(long)0,null);
+		System.out.println(" Created  File");
+		//path=new Path("/dir3/File33");//overwrite=true
+		//fs.create(path,FsPermission.getDefault(),true,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir7/File71");
 		fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
+		System.out.println(" Created  File");
 		//MDFSDirectory.printAllChildrenOfSubtrees();
 		//path=new Path("/dir0/File0"); // File already exists
 		//fs.create(path,FsPermission.getDefault(),false,(int)0,(short)1,(long)0,null);
 		path=new Path("/dir1/");
 		fs.delete(path,true);
+		System.out.println(" Deleted ");
 		path=new Path("/dir2/");
 		fs.delete(path,true);
 		path=new Path("/dir6/");
@@ -108,6 +122,7 @@ class TestHDFS{
 		fs.rename(new Path("/File7"),new Path("/dir3/"));
 		fs.rename(new Path("/dir3"),new Path("/dir8/"));
 		fs.rename(new Path("/dir8"),new Path("/dir3/"));
+		System.out.println(" Renamed ");
 
 
 

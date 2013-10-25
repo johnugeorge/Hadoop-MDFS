@@ -41,7 +41,7 @@ public class MDFSNameSystem{
 	}
 
 
-	public boolean addNewFile(String src,int flags,boolean createParent,FsPermission permission,short replication, long blockSize) throws IOException{
+	public boolean addNewFile(String src,int flags,boolean createParent,FsPermission permission,short replication, long blockSize ,int myNodeId) throws IOException{
 		if (!DFSUtil.isValidName(src)) {
 			throw new IOException("Invalid name: " + src);
 		}
@@ -71,7 +71,7 @@ public class MDFSNameSystem{
 
 		if(!append)
 		{
-			MDFSINode inode =mdfsDir.addNewFile(src,permission,replication,blockSize);
+			MDFSINode inode =mdfsDir.addNewFile(src,permission,replication,blockSize,myNodeId);
 			if(inode == null)
 				throw new IOException(" Unable to create INode file ");
 		}
@@ -112,6 +112,17 @@ public class MDFSNameSystem{
 	public boolean rename(String src,String dest) throws IOException {
 		return mdfsDir.rename(src,dest);
 	}
+
+
+	public LocatedBlocks getBlockLocations(String src, long start, long length) throws IOException {
+
+		return mdfsDir.getBlockLocations(src, start, length);
+	}
+
+	public LocatedBlock addNewBlock(String src,int myNodeId) throws IOException {
+		return mdfsDir.addBlock(src,myNodeId);
+	}
+
 }
 
 

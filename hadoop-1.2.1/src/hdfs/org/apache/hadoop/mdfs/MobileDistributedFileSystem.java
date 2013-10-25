@@ -208,7 +208,6 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 		/* we're done if its a file */
 		if (!status.isDir()) {
-			//TODO how to delete file
 			mdfs.rmdir(path,false);
 			return true;
 		}

@@ -9,27 +9,8 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.mdfs.protocol.Block;
 
+import edu.tamu.lenss.mdfs.models.NodeInfo;
 
-class BlockInfo extends Block{
-	private MDFSINodeFile          inode;
-
-
-	private Object[] triplets;
-
-	BlockInfo(Block blk, int replication) {
-		super(blk);
-		this.triplets = new Object[3*replication];
-		this.inode = null;
-	}
-
-	MDFSINodeFile getINode() {
-		return inode;
-	}
-
-	void setMDFSINode(MDFSINodeFile inode) {
-		this.inode = inode;
-	}
-}
 
 class MDFSINodeFile extends MDFSINode {
   static final FsPermission UMASK = FsPermission.createImmutable((short)0111);

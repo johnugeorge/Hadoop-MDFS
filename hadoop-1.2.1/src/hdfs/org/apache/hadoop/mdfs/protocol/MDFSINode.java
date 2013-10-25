@@ -11,7 +11,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.permission.*;
 import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.mdfs.utils.DFSUtil;
-import org.apache.hadoop.mdfs.protocol.Block;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.commons.logging.*;
 
@@ -104,7 +103,8 @@ abstract class MDFSINode implements Comparable<byte[]>{
   protected MDFSINode(String name, PermissionStatus permissions) {
     setPermissionStatus(permissions);
     setLocalName(name);
-    this.createdTime=(new Timestamp((new Date()).getTime())).getTime();
+    //this.createdTime=(new Timestamp((new Date()).getTime())).getTime();
+    this.createdTime=System.nanoTime();
     setAccessTime(this.createdTime);
     setLastModifiedTime(this.createdTime);
     this.isFragmented = false;
@@ -115,7 +115,8 @@ abstract class MDFSINode implements Comparable<byte[]>{
   protected MDFSINode(String name, FsPermission permission) {
 	  setPermissionStatus(new PermissionStatus(null, null, permission));
 	  setLocalName(name);
-	  this.createdTime=(new Timestamp((new Date()).getTime())).getTime();
+	  //this.createdTime=(new Timestamp((new Date()).getTime())).getTime();
+    	  this.createdTime=System.nanoTime();
 	  setAccessTime(this.createdTime);
 	  setLastModifiedTime(this.createdTime);
 	  this.isFragmented = false;
@@ -475,6 +476,11 @@ abstract class MDFSINode implements Comparable<byte[]>{
         return b1 - b2;
     }
     return len1 - len2;
+  }
+
+  LocatedBlocks createLocatedBlocks(List<LocatedBlock> blocks) {
+	  return new LocatedBlocks(computeContentSummary().getLength(), blocks,
+			  isUnderConstruction());
   }
   
 }

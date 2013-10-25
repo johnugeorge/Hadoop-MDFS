@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -14,6 +15,8 @@ import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.mdfs.utils.DFSUtil;
 import org.apache.hadoop.mdfs.protocol.Block;
 
+import edu.tamu.lenss.mdfs.models.NodeInfo;
+
 
 
 public class MDFSDirectory{
@@ -22,11 +25,14 @@ public class MDFSDirectory{
 	private static MDFSINodeDirectory rootDir;
 	private MDFSNameSystem namesystem;
 	private Configuration conf;
+	private long blockId;
+	private TreeMap<Block, NodeInfo> treemap;
 
 
 	public MDFSDirectory (MDFSNameSystem namesystem,Configuration conf){
 		this.namesystem = namesystem;
 		this.conf=conf;
+		blockId=0;
 		rootDir = new MDFSINodeDirectory(MDFSINodeDirectory.ROOT_NAME,
 				        new PermissionStatus(null,null,FsPermission.getDefault()));
 	}
@@ -82,7 +88,7 @@ public class MDFSDirectory{
 	}
 
 
-	public MDFSINode addNewFile(String src,FsPermission permission,short replication, long blockSize) throws IOException{
+	public MDFSINode addNewFile(String src,FsPermission permission,short replication, long blockSize ,int myNodeId) throws IOException{
 		if(!mkdirs(new Path(src).getParent().toString(),permission,true))
 			return null;
 		MDFSINodeFile child = new MDFSINodeFile(permission,0,replication,blockSize);
@@ -90,6 +96,7 @@ public class MDFSDirectory{
 		byte[][] components = MDFSINode.getPathComponents(src);
 		byte[] path = components[components.length-1];
 		child.setLocalName(path);
+		child.setCreator(myNodeId);
 		MDFSINode[] inodes = new MDFSINode[components.length];
 		rootDir.getExistingPathMDFSINodes(components, inodes);
 
@@ -302,8 +309,86 @@ public class MDFSDirectory{
 
 
 
+	LocatedBlocks getBlockLocations(String src, long offset, long length) throws IOException {
+		MDFSINodeFile inode = getFileINode(src);
+		if(inode == null) {
+			return null;
+		}
+		BlockInfo[] blocks = inode.getBlocks();
+		if (blocks == null) {
+			return null;
+		}
+		if (blocks.length == 0) {
+			return inode.createLocatedBlocks(new ArrayList<LocatedBlock>(blocks.length));
+		}
+		List<LocatedBlock> results;
+		results = new ArrayList<LocatedBlock>(blocks.length);
+
+		int curBlk = 0;
+		long curPos = 0, blkSize = 0;
+		int nrBlocks = (blocks[0].getNumBytes() == 0) ? 0 : blocks.length;
+		for (curBlk = 0; curBlk < nrBlocks; curBlk++) {
+			blkSize = blocks[curBlk].getNumBytes();
+			assert blkSize > 0 : "Block of size 0";
+			if (curPos + blkSize > offset) {
+				break;
+			}
+			curPos += blkSize;
+		}
+		if (nrBlocks > 0 && curBlk == nrBlocks)   // offset >= end of file
+			return null;
+
+		long endOff = offset + length;
+		do {
 
 
+			LocatedBlock b = new LocatedBlock(blocks[curBlk],curPos);
+			results.add(b); 
+			curPos += blocks[curBlk].getNumBytes();
+			curBlk++;
+
+		} while(curPos < endOff && curBlk < blocks.length );
+
+		return inode.createLocatedBlocks(results);
+	}
+
+
+	public LocatedBlock addBlock(String src,int myNodeId) throws IOException {
+
+
+		MDFSINodeFile file = getFileINode(src);
+		long fileLength = file.computeContentSummary().getLength();
+		long blockSize = file.getPreferredBlockSize();
+		int replication = (int)file.getReplication();
+
+		MDFSINode[] pathINodes = rootDir.getExistingPathMDFSINodes(src);
+		BlockInfo newBlock = allocateBlock(src, pathINodes,myNodeId,replication);
+		LocatedBlock b = new LocatedBlock(newBlock, fileLength);
+
+		return b;
+
+	}
+
+	private BlockInfo allocateBlock(String src, MDFSINode[] inodes,int myNodeId,int replication) throws IOException {
+		long id = getUniqueBlockId(myNodeId);
+		Block b = new Block(id, 0, 0); 
+		b.setBlockId(id);
+		BlockInfo blockInfo = new BlockInfo(b,replication);
+		       
+		MDFSINodeFile fileNode = (MDFSINodeFile) inodes[inodes.length-1];
+		fileNode.addBlock(blockInfo);
+
+		System.out.println(" New Block created for src "+src+ " with block id "+ id);
+		return blockInfo;
+	}
+
+
+	private long getUniqueBlockId(int myNodeId){
+		String str = (new Integer(myNodeId)).toString();
+		str =str+blockId;
+		blockId++;
+		return Long.parseLong(str,10);
+	}
 
 }
 

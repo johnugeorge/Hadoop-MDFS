@@ -10,6 +10,7 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import java.io.*;
 import org.apache.hadoop.io.DataInputBuffer;
 
+import org.apache.hadoop.fs.FSDataOutputStream;
 
 class TestMDFS{
 	public static void main(String[] args)  throws Exception
@@ -108,6 +109,21 @@ class TestMDFS{
 		fs.rename(new Path("/dir3"),new Path("/dir8/"));
 		fs.rename(new Path("/dir8"),new Path("/dir3/"));
 		MDFSDirectory.printAllChildrenOfSubtrees();
+		String line=" First String ";
+		path=new Path("/dir3/FileTest.txt");
+		System.out.println(" going to write");
+		OutputStream out=fs.create(path,FsPermission.getDefault(),false,(int)4192,(short)1,(long)4192,null);
+		//OutputStream appendout=fs.append(path,4192,null);//append
+		BufferedWriter br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
+		int i=0;
+		while(i<10000){
+		br.write("Hello World");
+		br.write(" done ");
+		i++;}
+		br.close();
+		System.out.println("Write Successful");
+
+
 
 
 

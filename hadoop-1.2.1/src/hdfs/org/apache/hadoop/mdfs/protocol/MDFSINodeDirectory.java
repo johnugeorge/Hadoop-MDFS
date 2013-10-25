@@ -394,7 +394,7 @@ class MDFSINodeDirectory extends MDFSINode {
     }
     for (MDFSINode child : children) {
 	        child.printAllChildrenOfSubtrees();
-		System.out.println(" Child of "+ child.getParent().getFileName()+"  is  "+ child.getFileName());         
+		System.out.println(" Child of "+ child.getParent().getFileName()+"  is  "+ child.getFileName()+ " created at "+getCreatedTime());         
 
     }
   }
