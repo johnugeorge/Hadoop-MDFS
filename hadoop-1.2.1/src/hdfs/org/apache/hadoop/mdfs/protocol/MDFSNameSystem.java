@@ -13,14 +13,23 @@ import org.apache.hadoop.mdfs.utils.MountFlags;
 import org.apache.hadoop.mdfs.protocol.Block;
 
 
+import edu.tamu.lenss.mdfs.comm.ServiceHelper;
 
 public class MDFSNameSystem{
 
 	private static MDFSNameSystem instance = null;
 	private MDFSDirectory mdfsDir;
 
+	private ServiceHelper serviceHelper;
+	private int myNodeId;
+
 	MDFSNameSystem(Configuration conf){
-	       mdfsDir= new MDFSDirectory(this,conf);
+		mdfsDir= new MDFSDirectory(this,conf);
+		this.serviceHelper = ServiceHelper.getInstance();
+		this.myNodeId = serviceHelper.getMyNode().getNodeId();
+		System.out.println(" My Node Id "+ myNodeId);
+
+
 	}
 
 	public static MDFSNameSystem getInstance(Configuration conf) {
@@ -41,7 +50,7 @@ public class MDFSNameSystem{
 	}
 
 
-	public boolean addNewFile(String src,int flags,boolean createParent,FsPermission permission,short replication, long blockSize ,int myNodeId) throws IOException{
+	public boolean addNewFile(String src,int flags,boolean createParent,FsPermission permission,short replication, long blockSize) throws IOException{
 		if (!DFSUtil.isValidName(src)) {
 			throw new IOException("Invalid name: " + src);
 		}
@@ -119,8 +128,14 @@ public class MDFSNameSystem{
 		return mdfsDir.getBlockLocations(src, start, length);
 	}
 
-	public LocatedBlock addNewBlock(String src,int myNodeId) throws IOException {
+	public LocatedBlock addNewBlock(String src) throws IOException {
+
 		return mdfsDir.addBlock(src,myNodeId);
+	}
+
+	public void notifyBlockAdded(String src,String blockLoc,long blockId,int bufCount) throws IOException{
+
+		mdfsDir.notifyBlockAdded(src,blockLoc,blockId,bufCount);
 	}
 
 }

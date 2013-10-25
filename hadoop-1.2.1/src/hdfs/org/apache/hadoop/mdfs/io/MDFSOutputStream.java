@@ -16,7 +16,6 @@ import org.apache.hadoop.mdfs.protocol.BlockInfo;
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 
 
-import edu.tamu.lenss.mdfs.comm.ServiceHelper;
 import adhoc.tcp.TCPConnection;
 
 
@@ -28,10 +27,6 @@ public class MDFSOutputStream extends OutputStream {
 	private short blockReplication; // replication factor of file
 	private Progressable progress;
 	private MDFSNameSystem namesystem;
-	private ServiceHelper serviceHelper;
-	private TCPConnection tcpConnection;
-	private int myNodeId;
-	private MDFSFileCreator mdfsFileCreator;
 	private LocatedBlock lastBlock;
 	private byte buffer[];
 	private int bufCount;
@@ -47,9 +42,6 @@ public class MDFSOutputStream extends OutputStream {
 		this.blockReplication = replication;
 		this.progress = progress;
 		this.namesystem = namesystem;
-		this.serviceHelper = ServiceHelper.getInstance();
-		this.tcpConnection = TCPConnection.getInstance();
-		this.myNodeId = serviceHelper.getMyNode().getNodeId();
 		this.buffer= new byte[bufferSize];
 		this.bufCount=0;
 		this.writer=null;
@@ -57,9 +49,7 @@ public class MDFSOutputStream extends OutputStream {
 		lastBlock=null;
 		addNewBlock=true;
 
-		this.mdfsFileCreator = new MDFSFileCreator(namesystem,src,flags,replication,blockSize,progress,myNodeId);
-		System.out.println(" My Node Id "+ myNodeId);
-		namesystem.addNewFile(src,flags,createParent,permission,replication,blockSize,myNodeId);
+		namesystem.addNewFile(src,flags,createParent,permission,replication,blockSize);
 
 		LocatedBlocks blocks= getBlockLocations(src,0,Long.MAX_VALUE);
 		System.out.println(" Total number of blocks " + blocks.getLocatedBlocks().size());
@@ -78,10 +68,10 @@ public class MDFSOutputStream extends OutputStream {
 	@Override
 	public synchronized void write(int b) throws IOException {
 		if(addNewBlock == true) {
-			lastBlock=namesystem.addNewBlock(src,myNodeId);
 			if(writer != null){
 				writer.close();
 			}
+			lastBlock=namesystem.addNewBlock(src);
 			writer=new BlockWriter(lastBlock.getBlock().getBlockId());
 			addNewBlock=false;
 		}
@@ -98,10 +88,10 @@ public class MDFSOutputStream extends OutputStream {
 	public void write(byte buf[]) throws IOException{
 		System.out.println(" Write called 2");
 		if(addNewBlock == true) {
-			lastBlock=namesystem.addNewBlock(src,myNodeId);
 			if(writer != null){
 				writer.close();
 			}
+			lastBlock=namesystem.addNewBlock(src);
 			writer=new BlockWriter(lastBlock.getBlock().getBlockId());
 			addNewBlock=false;
 		}
@@ -115,10 +105,10 @@ public class MDFSOutputStream extends OutputStream {
 	public synchronized void write(byte buf[], int off, int len) throws IOException {
 		System.out.println(" Write called with offset "+off+" length "+len);
 		if(addNewBlock == true) {
-			lastBlock=namesystem.addNewBlock(src,myNodeId);
 			if(writer != null){
 				writer.close();
 			}
+			lastBlock=namesystem.addNewBlock(src);
 			writer=new BlockWriter(lastBlock.getBlock().getBlockId());
 			addNewBlock=false;
 		}
@@ -171,6 +161,9 @@ public class MDFSOutputStream extends OutputStream {
 			}
 			else{
 				writer.writeBuffer(buffer,0,bufCount);
+				long blockId= lastBlock.getBlock().getBlockId();
+				String blockLoc=writer.getBlockLocationInFS(blockId);
+				namesystem.notifyBlockAdded(src,blockLoc,blockId,bufCount);
 			}
 	}
 

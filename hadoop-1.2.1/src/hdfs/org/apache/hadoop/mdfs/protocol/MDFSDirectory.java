@@ -376,6 +376,7 @@ public class MDFSDirectory{
 		BlockInfo blockInfo = new BlockInfo(b,replication);
 		       
 		MDFSINodeFile fileNode = (MDFSINodeFile) inodes[inodes.length-1];
+		blockInfo.setMDFSINode(fileNode);
 		fileNode.addBlock(blockInfo);
 
 		System.out.println(" New Block created for src "+src+ " with block id "+ id);
@@ -388,6 +389,25 @@ public class MDFSDirectory{
 		str =str+blockId;
 		blockId++;
 		return Long.parseLong(str,10);
+	}
+
+	public void notifyBlockAdded(String src,String blockLoc,long blockId,int bufCount)throws IOException{
+		boolean found=false;
+		MDFSINode[] inodes = rootDir.getExistingPathMDFSINodes(src);
+		MDFSINodeFile fileNode = (MDFSINodeFile) inodes[inodes.length-1];
+		BlockInfo[] blocksInfo = fileNode.getBlocks();
+		for(BlockInfo b:blocksInfo){
+			if(b.getBlockId() == blockId){
+				found=true;
+				b.setNumBytes(bufCount);
+				break;
+			}
+		}
+		if(found == false)
+			throw new IOException(" Block is not found with id "+ blockId + " for file "+src);
+
+
+
 	}
 
 }

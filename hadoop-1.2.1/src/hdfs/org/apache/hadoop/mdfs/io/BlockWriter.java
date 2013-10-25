@@ -14,12 +14,11 @@ public class BlockWriter{
 	String src;
 
 	BlockWriter(long blockId) throws FileNotFoundException,IOException{
-		this((new Long(blockId)).toString());
+		this(getBlockLocationInFS(blockId));
 	}
 
 
 	BlockWriter(String fileName) throws FileNotFoundException,IOException{
-		fileName="/tmp/MDFS/Blocks/Block-"+fileName;
 		src=fileName;
 		File f = new File(fileName);
 
@@ -42,6 +41,11 @@ public class BlockWriter{
 	public void close() throws IOException{
 		System.out.println(" FileOutputStream is closed for fileName "+src);
 		dataOut.close();
+	}
+
+	public static String getBlockLocationInFS(long blockId){
+		String blockLoc= "/tmp/MDFS/Blocks/Block-"+ (new Long(blockId)).toString();
+		return blockLoc;
 	}
 
 }

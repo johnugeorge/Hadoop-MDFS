@@ -90,10 +90,6 @@ class TestMDFS{
 		//path=new Path("/dir0"); //dir already exist
 		//fs.mkdirs(path,FsPermission.getDefault());
 		//MDFSDirectory.printAllChildrenOfSubtrees();
-		fs.listStatus(new Path("/"));
-		System.out.println(" ");
-		fs.listStatus(new Path("/dir3"));
-		System.out.println(" ");
 		MDFSDirectory.printAllChildrenOfSubtrees();
 		System.out.println(" ");
 		fs.rename(new Path("/dir3/File33"),new Path("/dir3/File33_renamed"));
@@ -122,6 +118,10 @@ class TestMDFS{
 		i++;}
 		br.close();
 		System.out.println("Write Successful");
+		fs.listStatus(new Path("/"));
+		System.out.println(" ");
+		fs.listStatus(new Path("/dir3"));
+		System.out.println(" ");
 
 
 
