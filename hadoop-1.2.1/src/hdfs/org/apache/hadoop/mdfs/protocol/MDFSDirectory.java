@@ -391,7 +391,7 @@ public class MDFSDirectory{
 		return Long.parseLong(str,10);
 	}
 
-	public void notifyBlockAdded(String src,String blockLoc,long blockId,int bufCount)throws IOException{
+	public void notifyBlockAdded(String src,long blockId,long bufCount)throws IOException{
 		boolean found=false;
 		MDFSINode[] inodes = rootDir.getExistingPathMDFSINodes(src);
 		MDFSINodeFile fileNode = (MDFSINodeFile) inodes[inodes.length-1];

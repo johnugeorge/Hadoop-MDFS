@@ -32,6 +32,7 @@ public class MDFSOutputStream extends OutputStream {
 	private int bufCount;
 	private boolean addNewBlock;
 	private BlockWriter writer;
+	private long blockOffset;
 
 
 
@@ -44,6 +45,7 @@ public class MDFSOutputStream extends OutputStream {
 		this.namesystem = namesystem;
 		this.buffer= new byte[bufferSize];
 		this.bufCount=0;
+		this.blockOffset=0;
 		this.writer=null;
 		boolean append = MountFlags.O_APPEND.isSet(flags);
 		lastBlock=null;
@@ -53,6 +55,7 @@ public class MDFSOutputStream extends OutputStream {
 
 		LocatedBlocks blocks= getBlockLocations(src,0,Long.MAX_VALUE);
 		System.out.println(" Total number of blocks " + blocks.getLocatedBlocks().size());
+		System.out.println(" blockSize "+blockSize+" bufferSize "+bufferSize);
 		if(blocks.getLocatedBlocks().size() != 0){
 			if(!append){
 				throw new IOException(" No blocks present for Append Operation");
@@ -69,6 +72,12 @@ public class MDFSOutputStream extends OutputStream {
 	public synchronized void write(int b) throws IOException {
 		if(addNewBlock == true) {
 			if(writer != null){
+				if(lastBlock == null)
+					throw new IOException("lastBlock is Null");
+				long blockId= lastBlock.getBlock().getBlockId();
+				String blockLoc=writer.getBlockLocationInFS(blockId);
+				namesystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
+				blockOffset=0;
 				writer.close();
 			}
 			lastBlock=namesystem.addNewBlock(src);
@@ -76,10 +85,17 @@ public class MDFSOutputStream extends OutputStream {
 			addNewBlock=false;
 		}
 		buffer[bufCount++] = (byte)b;
-		if(bufCount == buffer.length) {
+		blockOffset++;
+		if(blockOffset == blockSize ){
 			flushBuffer();
 			bufCount =0;
 			addNewBlock=true;
+		}
+
+		if(bufCount == buffer.length) {
+			flushBuffer();
+			bufCount =0;
+			//addNewBlock=true;
 		}
 
 	}
@@ -87,14 +103,7 @@ public class MDFSOutputStream extends OutputStream {
 	@Override
 	public void write(byte buf[]) throws IOException{
 		System.out.println(" Write called 2");
-		if(addNewBlock == true) {
-			if(writer != null){
-				writer.close();
-			}
-			lastBlock=namesystem.addNewBlock(src);
-			writer=new BlockWriter(lastBlock.getBlock().getBlockId());
-			addNewBlock=false;
-		}
+		
 		for(byte b:buf)
 			write(b);
 
@@ -104,14 +113,7 @@ public class MDFSOutputStream extends OutputStream {
 	@Override
 	public synchronized void write(byte buf[], int off, int len) throws IOException {
 		System.out.println(" Write called with offset "+off+" length "+len);
-		if(addNewBlock == true) {
-			if(writer != null){
-				writer.close();
-			}
-			lastBlock=namesystem.addNewBlock(src);
-			writer=new BlockWriter(lastBlock.getBlock().getBlockId());
-			addNewBlock=false;
-		}
+		
 		byte[] array= new byte[len];
 		System.arraycopy(buf,off,array,0,len);
 		for(byte b:array)
@@ -134,7 +136,13 @@ public class MDFSOutputStream extends OutputStream {
 		if(buffer.length != 0 ){
 			flushBuffer();
 		}
-		writer.close();
+
+		if(lastBlock != null){
+			long blockId= lastBlock.getBlock().getBlockId();
+			String blockLoc=writer.getBlockLocationInFS(blockId);
+			namesystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
+			writer.close();
+		}
 
 	}
 
@@ -161,9 +169,6 @@ public class MDFSOutputStream extends OutputStream {
 			}
 			else{
 				writer.writeBuffer(buffer,0,bufCount);
-				long blockId= lastBlock.getBlock().getBlockId();
-				String blockLoc=writer.getBlockLocationInFS(blockId);
-				namesystem.notifyBlockAdded(src,blockLoc,blockId,bufCount);
 			}
 	}
 

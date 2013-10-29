@@ -117,6 +117,38 @@ class TestMDFS{
 		br.write(" done ");
 		i++;}
 		br.close();
+
+
+		line=" Second String ";
+		path=new Path("/dir3/FileTest2.txt");
+		System.out.println(" going to write");
+		out=fs.create(path,FsPermission.getDefault(),false,(int)4192,(short)1,(long)4191,null);
+		//OutputStream appendout=fs.append(path,4192,null);//append
+		br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
+		i=0;
+		while(i<10000){
+		br.write("HelloWorld");
+		br.write(" done ");
+		i++;}
+		br.close();
+
+
+
+		line=" Third String ";
+		path=new Path("/dir3/FileTest3.txt");
+		System.out.println(" going to write");
+		out=fs.create(path,FsPermission.getDefault(),false,(int)4192,(short)1,(long)4192* 1024 ,null);
+		//OutputStream appendout=fs.append(path,4192,null);//append
+		br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
+		i=0;
+		while(i<10000){
+		br.write("Hello World ");
+		br.write(" done ");
+		i++;}
+		br.close();
+
+
+
 		System.out.println("Write Successful");
 		fs.listStatus(new Path("/"));
 		System.out.println(" ");

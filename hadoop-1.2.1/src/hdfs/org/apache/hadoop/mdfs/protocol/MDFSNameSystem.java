@@ -22,11 +22,15 @@ public class MDFSNameSystem{
 
 	private ServiceHelper serviceHelper;
 	private int myNodeId;
+	private ListOfBlocksToDistribute ll;
+	private MDFSCommunicator commThread;
 
 	MDFSNameSystem(Configuration conf){
 		mdfsDir= new MDFSDirectory(this,conf);
 		this.serviceHelper = ServiceHelper.getInstance();
 		this.myNodeId = serviceHelper.getMyNode().getNodeId();
+		ll=new ListOfBlocksToDistribute();
+		commThread=new MDFSCommunicator(ll);
 		System.out.println(" My Node Id "+ myNodeId);
 
 
@@ -133,9 +137,10 @@ public class MDFSNameSystem{
 		return mdfsDir.addBlock(src,myNodeId);
 	}
 
-	public void notifyBlockAdded(String src,String blockLoc,long blockId,int bufCount) throws IOException{
+	public void notifyBlockAdded(String src,String actualBlockLoc,long blockId,long bufCount) throws IOException{
 
-		mdfsDir.notifyBlockAdded(src,blockLoc,blockId,bufCount);
+		mdfsDir.notifyBlockAdded(src,blockId,bufCount);
+		ll.addElem(actualBlockLoc);
 	}
 
 }
