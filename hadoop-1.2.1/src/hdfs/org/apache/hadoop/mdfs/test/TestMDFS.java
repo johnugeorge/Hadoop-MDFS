@@ -112,11 +112,12 @@ class TestMDFS{
 		//OutputStream appendout=fs.append(path,4192,null);//append
 		BufferedWriter br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
 		int i=0;
-		while(i<10000){
+		/*while(i<10000){
 		br.write("Hello World");
 		br.write(" done ");
 		i++;}
 		br.close();
+		OutputStream appendout1=fs.append(path,4192,null);//append
 
 
 		line=" Second String ";
@@ -131,19 +132,27 @@ class TestMDFS{
 		br.write(" done ");
 		i++;}
 		br.close();
+		appendout1=fs.append(path,4192,null);//append
 
-
+*/
 
 		line=" Third String ";
 		path=new Path("/dir3/FileTest3.txt");
 		System.out.println(" going to write");
-		out=fs.create(path,FsPermission.getDefault(),false,(int)4192,(short)1,(long)4192* 1024 ,null);
+		out=fs.create(path,FsPermission.getDefault(),false,(int)4192,(short)1,(long)4192 ,null);
 		//OutputStream appendout=fs.append(path,4192,null);//append
 		br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
 		i=0;
-		while(i<10000){
+		while(i<1000){
 		br.write("Hello World ");
 		br.write(" done ");
+		i++;}
+		br.close();
+		OutputStream appendout2=fs.append(path,4192,null);//append
+		br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
+		i=0;
+		while(i<1000){
+		br.write("Append");
 		i++;}
 		br.close();
 

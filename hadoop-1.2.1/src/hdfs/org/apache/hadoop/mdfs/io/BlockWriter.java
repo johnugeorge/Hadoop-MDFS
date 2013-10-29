@@ -13,12 +13,12 @@ public class BlockWriter{
 	FileOutputStream dataOut;
 	String src;
 
-	BlockWriter(long blockId) throws FileNotFoundException,IOException{
-		this(getBlockLocationInFS(blockId));
+	BlockWriter(long blockId,boolean append) throws FileNotFoundException,IOException{
+		this(getBlockLocationInFS(blockId),append);
 	}
 
 
-	BlockWriter(String fileName) throws FileNotFoundException,IOException{
+	BlockWriter(String fileName,boolean append) throws FileNotFoundException,IOException{
 		src=fileName;
 		File f = new File(fileName);
 
@@ -27,7 +27,7 @@ public class BlockWriter{
 			f.createNewFile();
 		}
 
-		dataOut = new FileOutputStream(fileName);
+		dataOut = new FileOutputStream(fileName,append);
 		System.out.println(" Creating BlockWriter for fileName "+fileName);
 
 	}

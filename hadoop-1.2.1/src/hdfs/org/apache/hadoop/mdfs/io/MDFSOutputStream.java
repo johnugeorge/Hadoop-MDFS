@@ -58,13 +58,31 @@ public class MDFSOutputStream extends OutputStream {
 		System.out.println(" blockSize "+blockSize+" bufferSize "+bufferSize);
 		if(blocks.getLocatedBlocks().size() != 0){
 			if(!append){
-				throw new IOException(" No blocks present for Append Operation");
-			}
-			else {
-				//lastBlock= ;
-			}
+				throw new IOException(" Blocks are present for Create Operation");
 
+			}
 		}
+		else {
+			if(append){
+				throw new IOException(" No Blocks present for Append Operation");
+
+			}
+		}
+
+		if(append){
+			lastBlock= blocks.get(blocks.locatedBlockCount() - 1);
+			if(lastBlock == null)
+				throw new IOException("lastBlock is Null");
+			if(lastBlock.getBlock().getNumBytes() == blockSize){
+				addNewBlock=true;
+			}
+			else{
+				blockOffset=lastBlock.getBlock().getNumBytes();
+				writer=new BlockWriter(lastBlock.getBlock().getBlockId(),true);
+				addNewBlock=false;
+			}
+		}
+
 
 	}
 
@@ -81,7 +99,7 @@ public class MDFSOutputStream extends OutputStream {
 				writer.close();
 			}
 			lastBlock=namesystem.addNewBlock(src);
-			writer=new BlockWriter(lastBlock.getBlock().getBlockId());
+			writer=new BlockWriter(lastBlock.getBlock().getBlockId(),false);
 			addNewBlock=false;
 		}
 		buffer[bufCount++] = (byte)b;
