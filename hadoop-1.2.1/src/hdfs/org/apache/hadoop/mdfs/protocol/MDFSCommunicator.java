@@ -15,58 +15,118 @@ import edu.tamu.lenss.mdfs.comm.ServiceHelper;
 import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 
 
+class BlockOperation{
+	public String blockToOperate;
+	public String operation;
 
-class ListOfBlocksToDistribute{
-	private LinkedList<String> blocksToDistribute;
+	BlockOperation(String blockToOperate,String operation){
+		this.blockToOperate = blockToOperate;
+		this.operation = operation;
+	}
+}
 
-	ListOfBlocksToDistribute(){
-		blocksToDistribute = new LinkedList<String>();
+class ListOfBlocksOperation{
+	private LinkedList<BlockOperation> blocksOperation;
+	boolean valueSet =false;
+
+	ListOfBlocksOperation(){
+		blocksOperation = new LinkedList<BlockOperation>();
 	}
 
-	synchronized void addElem(String str){
-		System.out.println("Adding Elem"+str);
-		blocksToDistribute.add(str);
+	synchronized void addElem(BlockOperation blockOps){
+		System.out.println("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		blocksOperation.add(blockOps);
+		System.out.println("Size "+blocksOperation.size());
 		notify();
 
 	}
 
-	synchronized String getElem(){
-		String str=blocksToDistribute.poll();
+	synchronized BlockOperation  getElem(){
+		BlockOperation blockOps =blocksOperation.poll();
 		try{
-			if(str == null){
+			if(blockOps  == null){
 				wait();
-				str = blocksToDistribute.poll();
+				blockOps = blocksOperation.poll();
 			}
-			System.out.println("Removing Elem"+str);
+			System.out.println("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
 		}  catch(InterruptedException e) {
 			System.out.println("InterruptedException caught");
 		}
-		return str;
+		System.out.println("Size "+blocksOperation.size());
+		return blockOps;
 	}
+
+	synchronized void addToMaxOneElemList(BlockOperation blockOps){
+		if(valueSet){
+			try{
+				wait();
+			} catch(InterruptedException e) {
+				System.out.println("InterruptedException caught");
+			}
+		}
+		blocksOperation.add(blockOps);
+		valueSet=true;
+		System.out.println("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		notify();
+
+	}
+
+	synchronized BlockOperation removeFromMaxOneElemList(){
+		if(!valueSet){
+			try{
+				wait();
+			} catch(InterruptedException e) {
+				System.out.println("InterruptedException caught");
+			}
+		}
+		BlockOperation blockOps = blocksOperation.poll();
+		valueSet=false;
+		System.out.println("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		notify();
+		return blockOps;
+
+               
+	}	
 
 }
 
 class MDFSCommunicator implements Runnable{
-	private ListOfBlocksToDistribute ll; 
+	private ListOfBlocksOperation ll; 
 	Thread t ;
 	static Lock lock = new ReentrantLock();
 	static  Condition fileComplete  = lock.newCondition(); 
 	static boolean isComplete=false;
+	static boolean isSuccess=true;
+	static final int MAXRETRY = 5;
 
 
-	MDFSCommunicator(ListOfBlocksToDistribute list){
+	MDFSCommunicator(ListOfBlocksOperation list,boolean newThread){
 		ll =list;
-		t= new Thread(this,"MDFS Communication Thread");
-		System.out.println(" MDFS Communication Thread Started ");
-		t.start();
+		if(newThread){
+			t= new Thread(this,"MDFS Communication Thread");
+			System.out.println(" MDFS Communication Thread Started ");
+			t.start();
+		}
 	}
 
 	public void run() {
 		System.out.println(" MDFS Communication Thread Run ");
 		while(true){
-			String fileName =ll.getElem();
+			//BlockOperation blockOps =ll.getElem();
+			BlockOperation blockOps =ll.removeFromMaxOneElemList();
+			String fileName=blockOps.blockToOperate;
 			File fileBlock= new File(fileName);
-			createFile(fileBlock);
+			if(blockOps.operation == "CREATE"){
+				createFile(fileBlock);
+			}
+			else if(blockOps.operation == "RETRIEVE"){
+
+			}
+			else{
+				System.out.println(" Unknown Operation "+blockOps.operation);
+				continue;
+			}
+
 			lock.lock();
 			try{
 				if(isComplete==false){
@@ -90,6 +150,55 @@ class MDFSCommunicator implements Runnable{
 	}
 
 
+	public void sendBlockOperation(BlockOperation blockOps) {
+		System.out.println(" Send Block Operations to Network");
+		System.out.println("Block Operation Elem "+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		int maxRetry = MAXRETRY;
+		isSuccess=true;
+		//BlockOperation blockOps =ll.getElem();
+		while(maxRetry > 0){
+			String fileName=blockOps.blockToOperate;
+			File fileBlock= new File(fileName);
+			if(blockOps.operation == "CREATE"){
+				createFile(fileBlock);
+			}
+			else if(blockOps.operation == "RETRIEVE"){
+
+			}
+			else{
+				System.out.println(" Unknown Operation "+blockOps.operation);
+				return;
+			}
+
+			lock.lock();
+			try{
+				if(isComplete==false){
+
+					fileComplete.await();
+				}
+				else{
+					System.out.println(" isComplete is already true.");
+				}
+			}
+			catch (InterruptedException e) {
+
+				System.out.println(" Error:Interrupted Exception ");
+
+			}
+			finally {
+				lock.unlock();
+			}
+			if(isSuccess){
+				maxRetry=MAXRETRY;
+				break;
+			}
+			else{
+				maxRetry--;
+				System.out.println(" Earlier execution for file "+blockOps.blockToOperate + " Operation "+ blockOps.operation+" is unsuccessful");
+				System.out.println(" No of retries left is "+maxRetry);
+			}
+		}
+	}
 
 	public static void createFile(File file){
 		isComplete=false;
@@ -107,11 +216,26 @@ class MDFSCommunicator implements Runnable{
 		@Override
 		public void onError(String error) {
 			System.err.println("Creation Error:     " + error);
+			lock.lock();
+			isSuccess =false;
+			try{
+				if(isComplete== false ){
+					isComplete=true;
+					fileComplete.signal();
+				}else{
+					System.out.println(" isComplete is already true.");
+				}
+			}
+			finally {
+				lock.unlock();
+			}
+			System.out.println("File Creation Complete. ");
 		}
 
 		@Override
 		public void onComplete() {
 			lock.lock();
+			isSuccess =true;
 			try{
 				if(isComplete== false ){
 					isComplete=true;

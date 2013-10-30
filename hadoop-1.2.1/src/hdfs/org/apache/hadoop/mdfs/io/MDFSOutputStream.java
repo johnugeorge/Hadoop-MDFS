@@ -16,7 +16,6 @@ import org.apache.hadoop.mdfs.protocol.BlockInfo;
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 
 
-import adhoc.tcp.TCPConnection;
 
 
 public class MDFSOutputStream extends OutputStream {
@@ -78,7 +77,7 @@ public class MDFSOutputStream extends OutputStream {
 			}
 			else{
 				blockOffset=lastBlock.getBlock().getNumBytes();
-				writer=new BlockWriter(lastBlock.getBlock().getBlockId(),true);
+				writer=new BlockWriter(lastBlock.getBlock().getBlockId(),true);//TODO last block is not present locally
 				addNewBlock=false;
 			}
 		}
@@ -99,6 +98,7 @@ public class MDFSOutputStream extends OutputStream {
 				writer.close();
 			}
 			lastBlock=namesystem.addNewBlock(src);
+			System.out.println(" Last Block Id "+lastBlock.getBlock().getBlockId());
 			writer=new BlockWriter(lastBlock.getBlock().getBlockId(),false);
 			addNewBlock=false;
 		}

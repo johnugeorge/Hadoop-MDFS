@@ -45,6 +45,7 @@ public class MDFSEncoder {
 	}
 	
 	public boolean encode(){
+		Logger.v(TAG," Encoding File "+fileName);
 		long startT, endT;
 		StringBuilder str = new StringBuilder();
 		startT = System.currentTimeMillis();
@@ -81,6 +82,7 @@ public class MDFSEncoder {
 	}
 	
 	private boolean encryptFile(){
+		Logger.v(TAG," Encrypting File "+fileName);
 		// AES Encryption
 		MDFSCipher myCipher = MDFSCipher.getInstance();
 		// Make Sure the generated key is a positive BigInteger.

@@ -103,7 +103,6 @@ public class MDFSFileCreator {
 	public void start() {
 		discoverTopology();
 		setUpTimer();
-		System.out.println("Finished File Creation");
 
 	}
 
@@ -168,9 +167,10 @@ public class MDFSFileCreator {
 	private void encryptFile() {
 		isEncryptComplete = false;
 		logger.encryStart = System.currentTimeMillis();
-		if(file == null || !file.exists())
+		if(file == null || !file.exists()){
+			Logger.v(TAG," File doesn't exist.Hence returning from EncryptFile "+file.getName());
 			return;
-		
+		}
 		MDFSEncoder encoder = new MDFSEncoder(file, n1, n2, k1, k2,fileInfo.getCreatedTime());
 		/*
 		 * n1=4;n2=4;k1=3;k2=4; MDFSEncoder encoder = new MDFSEncoder(file, 4,

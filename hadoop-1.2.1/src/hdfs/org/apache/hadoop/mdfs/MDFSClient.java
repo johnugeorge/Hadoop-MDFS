@@ -8,14 +8,16 @@ import java.io.OutputStream;
 
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.util.Progressable;
+
 import org.apache.hadoop.mdfs.protocol.MDFSNameSystem;
 import org.apache.hadoop.mdfs.protocol.MDFSFileStatus;
 import org.apache.hadoop.mdfs.io.MDFSOutputStream;
-import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.mdfs.io.MDFSInputStream;
 
 class MDFSClient {
 
@@ -52,9 +54,12 @@ class MDFSClient {
 	}
 
 
-	int open(Path path, int flags, int mode) throws IOException {
+	MDFSInputStream open(Path path, long length,long blockSize,int bufferSize) throws IOException {
 
-		return 0;
+	
+		MDFSInputStream result = new MDFSInputStream(namesystem,pathString(path),length,blockSize,bufferSize);
+
+		return result;
 	}
 
 
@@ -87,6 +92,7 @@ class MDFSClient {
 	}
 
 	void close(int fd) throws IOException {
+		clientRunning=false;
 	}
 
 	void chmod(Path path, int mode) throws IOException {
@@ -102,15 +108,5 @@ class MDFSClient {
 	void setattr(Path path, MDFSFileStatus stat, int mask) throws IOException {
 	}
 
-	long lseek(int fd, long offset, int whence) throws IOException {
-		return 0 ;
-	}
-
-	int write(int fd, byte[] buf, long size, long offset) throws IOException {
-		return 0 ;
-	}
-
-	int read(int fd, byte[] buf, long size, long offset) throws IOException {
-		return 0 ;
-	}
+	
 }

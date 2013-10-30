@@ -112,14 +112,10 @@ public class MobileDistributedFileSystem extends FileSystem{
 	public FSDataInputStream open(Path path, int bufferSize) throws IOException {
 		path = makeAbsolute(path);
 
-
-		/* get file size */
 		MDFSFileStatus stat = mdfs.lstat(path);
 
-//		MDFSInputStream istream = new MDFSInputStream(
-//				stat.getLen(), bufferSize);
-//		return new FSDataInputStream(istream);
-		return null;
+		return new FSDataInputStream
+			(mdfs.open(path, stat.getLen(), stat.getBlockSize(), bufferSize)); 
 	}
 
 

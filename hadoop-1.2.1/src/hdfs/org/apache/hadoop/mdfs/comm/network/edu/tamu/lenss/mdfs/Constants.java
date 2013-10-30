@@ -9,6 +9,7 @@ public final class Constants {
 	public static final long TOPOLOGY_REBROADCAST_THRESHOLD = 1000;	// Time between each topology discovery request
 	public static final long DIRECTORY_LIST_REFRESH_PERIOD = 2500;
 	public static final long TOPOLOGY_CACHE_EXPIRY_TIME = 1000 *60*10;//After 10 minutes, cached topology info expires
+	public static final int TOPOLOGY_DISCOVERY_MAX_RETRIES =5;
 	
 	public static final double KEY_STORAGE_RATIO=1;
 	public static final double FILE_STORAGE_RATIO=1;

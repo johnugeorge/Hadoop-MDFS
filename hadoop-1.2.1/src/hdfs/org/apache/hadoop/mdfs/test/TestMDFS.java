@@ -148,13 +148,13 @@ class TestMDFS{
 		br.write(" done ");
 		i++;}
 		br.close();
-		OutputStream appendout2=fs.append(path,4192,null);//append
-		br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
-		i=0;
-		while(i<1000){
-		br.write("Append");
-		i++;}
-		br.close();
+		//OutputStream appendout2=fs.append(path,18,null);//append
+		//br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
+		//i=0;
+		//while(i<1000){
+		//br.write("Append");
+		//i++;}
+		//br.close();
 
 
 

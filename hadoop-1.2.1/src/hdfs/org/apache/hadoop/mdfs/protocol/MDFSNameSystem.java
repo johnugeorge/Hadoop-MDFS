@@ -22,15 +22,17 @@ public class MDFSNameSystem{
 
 	private ServiceHelper serviceHelper;
 	private int myNodeId;
-	private ListOfBlocksToDistribute ll;
+	private ListOfBlocksOperation ll;
 	private MDFSCommunicator commThread;
+	private boolean newThreadforMDFSCommunicator = false;//whether to start a new Thread for MDFS communicator
+
 
 	MDFSNameSystem(Configuration conf){
 		mdfsDir= new MDFSDirectory(this,conf);
 		this.serviceHelper = ServiceHelper.getInstance();
 		this.myNodeId = serviceHelper.getMyNode().getNodeId();
-		ll=new ListOfBlocksToDistribute();
-		commThread=new MDFSCommunicator(ll);
+		ll=new ListOfBlocksOperation();
+		commThread=new MDFSCommunicator(ll,newThreadforMDFSCommunicator);
 		System.out.println(" My Node Id "+ myNodeId);
 
 
@@ -138,9 +140,20 @@ public class MDFSNameSystem{
 	}
 
 	public void notifyBlockAdded(String src,String actualBlockLoc,long blockId,long bufCount) throws IOException{
-
+		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"CREATE");		
+		if(newThreadforMDFSCommunicator){
+			//ll.addElem(blockOps);
+			ll.addToMaxOneElemList(blockOps);
+		}
+		else{
+			commThread.sendBlockOperation(blockOps);
+		}
 		mdfsDir.notifyBlockAdded(src,blockId,bufCount);
-		ll.addElem(actualBlockLoc);
+	}
+
+	public void retrieveBlock(String src,String actualBlockLoc,long blockId) throws IOException{
+		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"RETRIEVE");		
+		ll.addElem(blockOps);
 	}
 
 }

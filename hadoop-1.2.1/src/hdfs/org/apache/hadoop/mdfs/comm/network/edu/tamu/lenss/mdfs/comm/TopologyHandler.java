@@ -25,6 +25,7 @@ public class TopologyHandler {
 	private Map<Integer, NodeInfo> cachedMap = new HashMap<Integer, NodeInfo>();
 	private JCountDownTimer timer;
 	private long last_discover_time;
+	//private int retries = Constants.TOPOLOGY_DISCOVERY_MAX_RETRIES;
 	private LinkedBlockingQueue<TopologyListener> listenerQueue = new LinkedBlockingQueue<TopologyListener>();
 	
 	public TopologyHandler(TopologyListener lis){
@@ -59,7 +60,7 @@ public class TopologyHandler {
 	}
 	
 	public void broadcastRequest(TopologyListener lis){
-		
+			
 		listenerQueue.add(lis);
 		// Use the cache data
 		if(!cachedMap.isEmpty() && ( System.currentTimeMillis()-last_discover_time < Constants.TOPOLOGY_CACHE_EXPIRY_TIME)){
@@ -90,6 +91,14 @@ public class TopologyHandler {
 	
 	
 	private void onErrorCallBack(String msg){
+		/*if(retries >0){
+			System.out.println(" Number of retries left for topology discovery "+retries);
+			retries--;
+			broadcastRequest(listenerQueue.poll());
+		}
+		else{
+			retries= Constants.TOPOLOGY_DISCOVERY_MAX_RETRIES;//reset retries
+		}*/
 		while(!listenerQueue.isEmpty()){
 			listenerQueue.poll().onError(msg);
 		}
@@ -101,6 +110,7 @@ public class TopologyHandler {
 			listenerQueue.poll().onComplete(topList);
 		}*/
 		//nodeInfo.clear();
+		//retries= Constants.TOPOLOGY_DISCOVERY_MAX_RETRIES;//reset retries
 		cachedMap.putAll(topMap);
 		List<NodeInfo> topList = new ArrayList<NodeInfo>(topMap.values());
 		while(!listenerQueue.isEmpty()){
