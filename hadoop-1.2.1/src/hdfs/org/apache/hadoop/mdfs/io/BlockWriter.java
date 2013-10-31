@@ -6,15 +6,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
 
+import edu.tamu.lenss.mdfs.Constants;
+
 
 
 
 public class BlockWriter{
 	FileOutputStream dataOut;
 	String src;
+	String actualFileName;
 
-	BlockWriter(long blockId,boolean append) throws FileNotFoundException,IOException{
-		this(getBlockLocationInFS(blockId),append);
+	BlockWriter(String actualFileName,long blockId,boolean append) throws FileNotFoundException,IOException{
+		this(getBlockLocationInFS(actualFileName,blockId),append);
 	}
 
 
@@ -43,10 +46,12 @@ public class BlockWriter{
 		dataOut.close();
 	}
 
-	public static String getBlockLocationInFS(long blockId){
-		String blockLoc= "/tmp/MDFS/Blocks/Block-"+ (new Long(blockId)).toString();
+	public static String getBlockLocationInFS(String actualFileName,long blockId){
+		System.out.println(" Temporary  Data value "+ Constants.MDFS_HADOOP_DATA_DIR);
+		String blockLoc= Constants.MDFS_HADOOP_DATA_DIR+actualFileName+"/Blocks/Block-"+ (new Long(blockId)).toString();
 		return blockLoc;
 	}
+
 
 }
 

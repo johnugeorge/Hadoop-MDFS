@@ -143,9 +143,10 @@ public class MDFSFileRetriever {
 			int keyIdx = directory.getStoredKeyIndex(fileId);
 			if(keyIdx >= 0){
 				// add mine to keyShares
-				String dirName = MDFSFileInfo.getDirName(fileName, fileId);
-				String fName = fileName + "__key__" + keyIdx;
+				String dirName = MDFSFileInfo.getDirName(fileName,fileId);
+				String fName =  MDFSFileInfo.getShortFileName(fileName)+ "__key__" + keyIdx;
 				File f = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + dirName + "/" + fName);
+				System.out.println(" FileName "+f.getAbsolutePath());
 				KeyShareInfo key = IOUtilities.readObjectFromFile(f, KeyShareInfo.class);
 				keyShares.add(key);
 			}
@@ -302,12 +303,11 @@ public class MDFSFileRetriever {
 		// save decrypted data as a file
 		byte [] fileBytes = decoder.getPlainBytes();
 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_DECRYPTED);
-		File tmp = IOUtilities.createNewFile(tmp0, fileName);
+		File tmp = IOUtilities.createNewFile(tmp0, MDFSFileInfo.getDirName(fileName,fileId));
 		try {
 			FileOutputStream fos = new FileOutputStream(tmp);
 			fos.write(fileBytes, 0, fileBytes.length);
 			fos.close();
-			listener.onComplete(tmp, fileInfo);
 			directory.addDecryptedFile(fileId);
 			Logger.i(TAG, "File Decryption Complete");
 		} catch (FileNotFoundException e) {
@@ -321,7 +321,7 @@ public class MDFSFileRetriever {
 		// save encryted file
 		fileBytes = decoder.getEncryptedByteFile();
 		tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_ENCRYPTED);
-		tmp = IOUtilities.createNewFile(tmp0, fileName);
+		tmp = IOUtilities.createNewFile(tmp0, MDFSFileInfo.getDirName(fileName,fileId));
 		try {
 			FileOutputStream fos = new FileOutputStream(tmp);
 			fos.write(fileBytes, 0, fileBytes.length);
@@ -336,6 +336,7 @@ public class MDFSFileRetriever {
 		}
 		
 		writeLog();
+		listener.onComplete(tmp, fileInfo);
 	}
 	
 	private void writeLog(){
@@ -435,8 +436,8 @@ public class MDFSFileRetriever {
 				
 				// Start to download and save the file fragment
 				Logger.v(TAG, "Strat downloading frag " + fragmentIndex + " from " + destId);
-				String fDirName = MDFSFileInfo.getDirName(fileName, fileId);
-				String fName = fileName + "__frag__" + fragmentIndex;
+				String fDirName = MDFSFileInfo.getDirName(fileName,fileId);
+				String fName =  MDFSFileInfo.getShortFileName(fileName)+ "__frag__" + fragmentIndex;
 				//tmp0 = IOUtilities.getExternalFile(Constants.DIR_ROOT + "/" +	fDirName );
 				tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + fDirName + "/" + fName );
 				FileOutputStream fos = new FileOutputStream(tmp0);

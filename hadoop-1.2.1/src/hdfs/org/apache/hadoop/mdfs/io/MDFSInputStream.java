@@ -31,11 +31,12 @@ public class MDFSInputStream extends FSInputStream {
 	private LocatedBlock currentBlock;
 	private byte[] oneByteBuf = new byte[1];
 	private BlockReader blockReader;
+	private Configuration conf;
 
 
 
 
-	public MDFSInputStream(MDFSNameSystem namesystem,String src,long fileLength,long blockSize,int bufLen) throws IOException{
+	public MDFSInputStream(MDFSNameSystem namesystem,Configuration conf,String src,long fileLength,long blockSize,int bufLen) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.namesystem = namesystem;
@@ -43,6 +44,7 @@ public class MDFSInputStream extends FSInputStream {
 		this.bufferSize=bufLen;
 		this.filePos=0;
 		this.currentBlockEnd=-1;
+		this.conf=conf;
 
 		fileBlocks= getBlockLocations(src,0,Long.MAX_VALUE);
 		System.out.println(" Total number of blocks " + fileBlocks.getLocatedBlocks().size());
@@ -76,7 +78,8 @@ public class MDFSInputStream extends FSInputStream {
 	public synchronized int read(byte buf[], int off, int len) throws IOException{
 		System.out.println(" Read called with buf len "+buf.length+ "with offset "+off+" length "+len);
 		if(filePos >= getFileLength()){
-			throw new IOException(" FilePosition exceeded fileLength");
+			return -1;
+			//throw new IOException(" FilePosition exceeded fileLength");
 		}
 		else{
 			if(filePos >currentBlockEnd){
@@ -97,9 +100,10 @@ public class MDFSInputStream extends FSInputStream {
 	}
 
 	private synchronized int readBuffer(byte buf[], int off, int len) 
-		                                                    throws IOException {
-	
-		return 0;
+		throws IOException {
+
+		return blockReader.readBuffer(buf, off, len);
+
 	}
 
 	@Override
@@ -152,12 +156,12 @@ public class MDFSInputStream extends FSInputStream {
 			throw new IOException("Wrong postion " + filePos + " expect " + target);
 		long offsetIntoBlock = target - targetBlock.getStartOffset();
 		long blockId = targetBlock.getBlock().getBlockId();
-		String blockLoc= BlockReader.getBlockLocationInFS(blockId);
+		String blockLoc= BlockReader.getBlockWriteLocationInFS(src,blockId);
 		System.out.println(" BlockLocation  of block "+blockId +" is "+ blockLoc);
 		System.out.println(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
 		
-		namesystem.retrieveBlock(src,blockLoc,targetBlock.getBlock().getBlockId());
-
+		namesystem.retrieveBlock(src,blockLoc,blockId);
+		blockReader=new BlockReader(src,blockId);
 
 
 

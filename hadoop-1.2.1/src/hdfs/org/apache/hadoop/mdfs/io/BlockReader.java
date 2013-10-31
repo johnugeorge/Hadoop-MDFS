@@ -7,14 +7,15 @@ import java.io.IOException;
 import java.io.File;
 
 
+import edu.tamu.lenss.mdfs.Constants;
 
 
 public class BlockReader{
 	FileInputStream dataIn;
 	String src;
 
-	BlockReader(long blockId) throws FileNotFoundException,IOException{
-		this(getBlockLocationInFS(blockId));
+	BlockReader(String acutalFileName,long blockId) throws FileNotFoundException,IOException{
+		this(getBlockLocationInFS(acutalFileName,blockId));
 	}
 
 
@@ -32,8 +33,9 @@ public class BlockReader{
 	}
 
 
-	public void readBuffer(byte[] buffer,int offset,int length) throws IOException{
+	public int readBuffer(byte[] buffer,int offset,int length) throws IOException{
 		System.out.println("  Reading buffer offset "+ offset+" length "+length + " src "+src);
+		return dataIn.read(buffer,offset,length);
 
 	}
 
@@ -42,11 +44,19 @@ public class BlockReader{
 		dataIn.close();
 	}
 
-	public static String getBlockLocationInFS(long blockId){
-		String blockLoc= "/tmp/MDFS/Blocks/Block-"+ (new Long(blockId)).toString();
+	public static String getBlockLocationInFS(String actualFileName,long blockId){
+		String tmp=actualFileName+"/Blocks/Block-"+(new Long(blockId)).toString();
+		String blockLoc= "tmp/"+Constants.DIR_DECRYPTED+"/Block-"+ (new Long(blockId)).toString();
+		blockLoc += "__"+tmp.hashCode();
+		System.out.println(" Read  getBlockLocationInFS string "+blockLoc+" acutalFileName "+tmp);
 		return blockLoc;
 	}
 
+
+	public static String getBlockWriteLocationInFS(String actualFileName,long blockId){
+		String blockLoc= actualFileName+"/Blocks/Block-"+ (new Long(blockId)).toString();
+		return blockLoc;
+	}
 }
 
 

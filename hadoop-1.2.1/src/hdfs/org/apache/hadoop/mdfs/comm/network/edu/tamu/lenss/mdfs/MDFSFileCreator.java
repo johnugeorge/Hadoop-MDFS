@@ -37,6 +37,8 @@ import edu.tamu.lenss.mdfs.models.NodeInfo;
 import edu.tamu.lenss.mdfs.placement.PlacementHelper;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 import edu.tamu.lenss.mdfs.utils.JCountDownTimer;
+import edu.tamu.lenss.mdfs.Constants;
+
 
 
 public class MDFSFileCreator {
@@ -55,6 +57,7 @@ public class MDFSFileCreator {
 	private ExecutorService pool;
 	private AtomicInteger fragCounter;
 	private final FileCreationLog logger = new FileCreationLog();
+	private String fileName;
 
 	public MDFSFileCreator() {
 		
@@ -83,7 +86,17 @@ public class MDFSFileCreator {
 		this.serviceHelper = ServiceHelper.getInstance();
 		this.tcpConnection = TCPConnection.getInstance();
 		//this.fileInfo = new MDFSFileInfo(file.getName(), file.lastModified(),true);lastmodified is not unique.
-		this.fileInfo = new MDFSFileInfo(file.getName(), UUID.randomUUID().getMostSignificantBits(),true);
+		String absPath=file.getAbsolutePath();
+		fileName=file.getName();;
+		if(absPath.startsWith(Constants.MDFS_HADOOP_DATA_DIR))
+			fileName=absPath.substring(Constants.MDFS_HADOOP_DATA_DIR.length()-1);
+		else
+			System.out.println(" It doesn't start with MDFS_HADOOP_DATA_DIR"+Constants.MDFS_HADOOP_DATA_DIR);
+		System.out.println(" File to be created "+fileName);
+		
+	
+		//this.fileInfo = new MDFSFileInfo(file.getName(), UUID.randomUUID().getMostSignificantBits(),true);
+		this.fileInfo = new MDFSFileInfo(fileName, fileName.hashCode(),true);
 		this.fileInfo.setFileLength(file.length());
 		this.fileInfo.setCreator(serviceHelper.getMyNode().getNodeId());
 		this.pool = Executors.newCachedThreadPool();
@@ -186,7 +199,7 @@ public class MDFSFileCreator {
 
 		// Store the file fragments in local SDCard
 		File fragsDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/"
-				+ MDFSFileInfo.getDirName(file.getName(), fileInfo.getCreatedTime()));
+				+ MDFSFileInfo.getDirName(fileName, fileInfo.getCreatedTime()));
 
 		MDFSDirectory directory = serviceHelper.getDirectory();
 		// Create file fragments
@@ -276,7 +289,7 @@ public class MDFSFileCreator {
 
 		// Scan through all files in the folder and upload them
 		File fileFragDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/"
-				+ MDFSFileInfo.getDirName(file.getName(), fileInfo.getCreatedTime()));
+				+ MDFSFileInfo.getDirName(fileName, fileInfo.getCreatedTime()));
 		File[] files = fileFragDir.listFiles();
 		String name;
 
@@ -361,11 +374,11 @@ public class MDFSFileCreator {
 		Logger.v(TAG, "File Id: " + fileInfo.getCreatedTime());
 		// Update my directory as well
 		serviceHelper.getDirectory().addFile(fileInfo);
-		listener.onComplete();
 		if(this.deleteFileWhenComplete)
 			file.delete();
 		
 		writeLog();
+		listener.onComplete();
 	}
 	
 	private void writeLog(){

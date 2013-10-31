@@ -152,8 +152,14 @@ public class MDFSNameSystem{
 	}
 
 	public void retrieveBlock(String src,String actualBlockLoc,long blockId) throws IOException{
-		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"RETRIEVE");		
-		ll.addElem(blockOps);
+		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"RETRIEVE");	
+		if(newThreadforMDFSCommunicator){
+			//ll.addElem(blockOps);
+			ll.addToMaxOneElemList(blockOps);
+		}
+		else{
+			commThread.sendBlockOperation(blockOps);
+		}
 	}
 
 }

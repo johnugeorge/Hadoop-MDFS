@@ -24,6 +24,7 @@ class MDFSClient {
 	private short defaultReplication;
 	private boolean clientRunning;
 	private MDFSNameSystem namesystem;
+	private Configuration conf;
 
 	public MDFSClient(Configuration conf) {
 	}
@@ -36,6 +37,7 @@ class MDFSClient {
 
 		clientRunning=true;
 		this.namesystem = MDFSNameSystem.getInstance(conf);
+		this.conf=conf;
 	}
 
 	private void checkOpen() throws IOException{
@@ -48,7 +50,7 @@ class MDFSClient {
 			permission = FsPermission.getDefault();
 		}
 
-		MDFSOutputStream result= new MDFSOutputStream(namesystem,pathString(path),flags,permission, createParent,replication,blockSize,progress,bufferSize);
+		MDFSOutputStream result= new MDFSOutputStream(namesystem,conf,pathString(path),flags,permission, createParent,replication,blockSize,progress,bufferSize);
 		return result;
 
 	}
@@ -57,7 +59,7 @@ class MDFSClient {
 	MDFSInputStream open(Path path, long length,long blockSize,int bufferSize) throws IOException {
 
 	
-		MDFSInputStream result = new MDFSInputStream(namesystem,pathString(path),length,blockSize,bufferSize);
+		MDFSInputStream result = new MDFSInputStream(namesystem,conf,pathString(path),length,blockSize,bufferSize);
 
 		return result;
 	}

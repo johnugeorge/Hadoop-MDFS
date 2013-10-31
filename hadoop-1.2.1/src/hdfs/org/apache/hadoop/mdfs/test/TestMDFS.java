@@ -11,13 +11,16 @@ import java.io.*;
 import org.apache.hadoop.io.DataInputBuffer;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.conf.Configuration;
+
 
 class TestMDFS{
 	public static void main(String[] args)  throws Exception
 	{
 
 		MobileDistributedFileSystem fs = new MobileDistributedFileSystem();
-		fs.initialize(URI.create("mdfs://localhost:9000"),null);
+		Configuration conf = new Configuration();
+		fs.initialize(URI.create("mdfs://localhost:9000"),conf);
 
 		Path path=new Path("/dir0");
 		fs.mkdirs(path,FsPermission.getDefault());

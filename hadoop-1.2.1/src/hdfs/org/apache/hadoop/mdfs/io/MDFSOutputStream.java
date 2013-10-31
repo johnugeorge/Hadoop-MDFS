@@ -32,11 +32,12 @@ public class MDFSOutputStream extends OutputStream {
 	private boolean addNewBlock;
 	private BlockWriter writer;
 	private long blockOffset;
+	private Configuration conf;
 
 
 
 
-	public MDFSOutputStream(MDFSNameSystem namesystem,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
+	public MDFSOutputStream(MDFSNameSystem namesystem,Configuration conf,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.blockReplication = replication;
@@ -46,6 +47,7 @@ public class MDFSOutputStream extends OutputStream {
 		this.bufCount=0;
 		this.blockOffset=0;
 		this.writer=null;
+		this.conf=conf;
 		boolean append = MountFlags.O_APPEND.isSet(flags);
 		lastBlock=null;
 		addNewBlock=true;
@@ -77,7 +79,7 @@ public class MDFSOutputStream extends OutputStream {
 			}
 			else{
 				blockOffset=lastBlock.getBlock().getNumBytes();
-				writer=new BlockWriter(lastBlock.getBlock().getBlockId(),true);//TODO last block is not present locally
+				writer=new BlockWriter(src,lastBlock.getBlock().getBlockId(),true);//TODO last block is not present locally
 				addNewBlock=false;
 			}
 		}
@@ -92,14 +94,14 @@ public class MDFSOutputStream extends OutputStream {
 				if(lastBlock == null)
 					throw new IOException("lastBlock is Null");
 				long blockId= lastBlock.getBlock().getBlockId();
-				String blockLoc=writer.getBlockLocationInFS(blockId);
+				String blockLoc=writer.getBlockLocationInFS(src,blockId);
 				namesystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
 				blockOffset=0;
 				writer.close();
 			}
 			lastBlock=namesystem.addNewBlock(src);
 			System.out.println(" Last Block Id "+lastBlock.getBlock().getBlockId());
-			writer=new BlockWriter(lastBlock.getBlock().getBlockId(),false);
+			writer=new BlockWriter(src,lastBlock.getBlock().getBlockId(),false);
 			addNewBlock=false;
 		}
 		buffer[bufCount++] = (byte)b;
@@ -157,7 +159,7 @@ public class MDFSOutputStream extends OutputStream {
 
 		if(lastBlock != null){
 			long blockId= lastBlock.getBlock().getBlockId();
-			String blockLoc=writer.getBlockLocationInFS(blockId);
+			String blockLoc=writer.getBlockLocationInFS(src,blockId);
 			namesystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
 			writer.close();
 		}

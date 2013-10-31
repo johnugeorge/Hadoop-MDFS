@@ -12,13 +12,15 @@ import org.apache.hadoop.io.DataInputBuffer;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.conf.Configuration;
 
 class TestMDFSIO{
 	public static void main(String[] args)  throws Exception
 	{
 
 		MobileDistributedFileSystem fs = new MobileDistributedFileSystem();
-		fs.initialize(URI.create("mdfs://localhost:9000"),null);
+		Configuration conf = new Configuration();
+		fs.initialize(URI.create("mdfs://localhost:9000"),conf);
 
 		Path path=new Path("/dir3/");
 		fs.mkdirs(path,FsPermission.getDefault());
@@ -62,10 +64,10 @@ class TestMDFSIO{
 		//OutputStream appendout=fs.append(path,4192,null);//append
 		br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
 		i=0;
-		while(i<1000){
+		//while(i<1000){
 		br.write("Hello World ");
 		br.write(" done ");
-		i++;}
+		//i++;}
 		br.close();
 		System.out.println(" going to read");
 
@@ -73,7 +75,11 @@ class TestMDFSIO{
 		//BufferedReader rd = new BufferedReader( new InputStreamReader( in, "UTF-8" ) );
 
 		byte[] b1 = new byte[10];
-		int bytesRead = in.read(b1, 0, 10);
+		int a=0;
+		while((a=in.read()) !=-1){
+		//int bytesRead = in.read(b1, 0, 10);
+		System.out.println(" Read String is "+(char)a);
+		}
 		//OutputStream appendout2=fs.append(path,18,null);//append
 		//br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
 		//i=0;

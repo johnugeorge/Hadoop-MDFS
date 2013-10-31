@@ -163,7 +163,7 @@ class MDFSCommunicator implements Runnable{
 				createFile(fileBlock);
 			}
 			else if(blockOps.operation == "RETRIEVE"){
-
+				retrieveFile(fileName);
 			}
 			else{
 				System.out.println(" Unknown Operation "+blockOps.operation);
@@ -229,7 +229,7 @@ class MDFSCommunicator implements Runnable{
 			finally {
 				lock.unlock();
 			}
-			System.out.println("File Creation Complete. ");
+			System.out.println("File Creation Error. ");
 		}
 
 		@Override
@@ -253,9 +253,62 @@ class MDFSCommunicator implements Runnable{
 	};
 
 
+	public static void retrieveFile(String fileName){
+		isComplete=false;
+		System.out.println(" Retrieve file "+fileName);
+		MDFSFileRetriever retriever = new MDFSFileRetriever(fileName, fileName.hashCode());
+		retriever.setListener(fileRetrieverListener);
+		retriever.start();
+	}
 
 
 
+
+
+	private static FileRetrieverListener fileRetrieverListener = new FileRetrieverListener(){
+		@Override
+		public void statusUpdate(String status) {
+			System.out.println("Retrieval status update: " + status);
+		}
+
+		@Override
+		public void onError(String error) {
+			System.err.println("Retrieval Error:     " + error);
+			lock.lock();
+			isSuccess =false;
+			try{
+				if(isComplete== false ){
+					isComplete=true;
+					fileComplete.signal();
+				}else{
+					System.out.println(" isComplete is already true.");
+				}
+			}
+			finally {
+				lock.unlock();
+			}
+			System.out.println("File Retrieval Error. ");
+		}
+
+		@Override
+		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo) {
+			lock.lock();
+			isSuccess =true;
+			try{
+				if(isComplete== false ){
+					isComplete=true;
+					fileComplete.signal();
+				}else{
+					System.out.println(" isComplete is already true.");
+				}
+			}
+			finally {
+				lock.unlock();
+			}
+			System.out.println("File Retrieval Complete. ");
+		}
+
+	};
 
 
 
