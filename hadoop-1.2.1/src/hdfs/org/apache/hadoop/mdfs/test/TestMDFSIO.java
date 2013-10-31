@@ -129,6 +129,54 @@ class TestMDFSIO{
 		System.out.println("Buf Size 20000: Total Read Count "+count);
 
 
+
+		System.out.println(" Testing Seek and read count");
+		in.seek(10);
+		count=0;
+		while((a=in.read(b1,0,10)) != -1){
+			count+= a;
+		}
+		System.out.println("Buf Size 10: Total Read Count "+count);
+		in.seek(9);
+		count=0;
+		while((a=in.read(b1,0,9)) != -1){
+			count+= a;
+		}
+		System.out.println("Buf Size 9: Total Read Count "+count);
+		in.seek(1000);
+		count=0;
+		while((a=in.read(b1,0,1000)) != -1){
+			count+= a;
+		}
+		System.out.println("Buf Size 1000: Total Read Count "+count);
+		in.seek(2000);
+		count=0;
+		while((a=in.read(b1,0,2000)) != -1){
+			count+= a;
+		}
+		System.out.println("Buf Size 2000: Total Read Count "+count);
+		in.seek(5000);
+		count=0;
+		while((a=in.read(b1,0,5000)) != -1){
+			count+= a;
+		}
+		System.out.println("Buf Size 5000: Total Read Count "+count);
+		in.seek(10000);
+		count=0;
+		while((a=in.read(b1,0,10000)) != -1){
+			count+= a;
+		}
+		System.out.println("Buf Size 10000: Total Read Count "+count);
+
+
+		//in.seek(20000); //outside fileLength
+		count=0;
+		while((a=in.read(b1,0,20000)) != -1){
+			count+= a;
+		}
+		System.out.println("Buf Size 20000: Total Read Count "+count);//nothing to read
+
+
 		//OutputStream appendout2=fs.append(path,18,null);//append
 		//br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
 		//i=0;
