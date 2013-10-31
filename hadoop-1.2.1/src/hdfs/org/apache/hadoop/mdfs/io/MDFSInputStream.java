@@ -2,6 +2,9 @@ package org.apache.hadoop.mdfs.io;
 
 
 import java.io.IOException;
+import java.io.FileNotFoundException;
+
+
 import org.apache.hadoop.fs.FSInputStream;
 
 
@@ -19,11 +22,11 @@ import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 
 public class MDFSInputStream extends FSInputStream {
 
-	boolean closed = false;
+	private boolean closed = false;
 	private String src;
 	final private long blockSize;
 	private MDFSNameSystem namesystem;
-	private long fileLen;
+	private long fileLength;
 	private long bufferSize;
 	private LocatedBlocks fileBlocks;
 	private long filePos;
@@ -40,17 +43,18 @@ public class MDFSInputStream extends FSInputStream {
 		this.src = src;
 		this.blockSize = blockSize;
 		this.namesystem = namesystem;
-		this.fileLen= fileLength;
+		this.fileLength = fileLength;
 		this.bufferSize=bufLen;
 		this.filePos=0;
 		this.currentBlockEnd=-1;
 		this.conf=conf;
+		this.closed=false;
 
 		fileBlocks= getBlockLocations(src,0,Long.MAX_VALUE);
 		System.out.println(" Total number of blocks " + fileBlocks.getLocatedBlocks().size());
 		System.out.println(" blockSize "+blockSize+" bufferSize "+bufferSize);
-		if(fileLen != getFileLength())
-			throw new IOException(" FileLength mismatch. write happened after open "+ getFileLength()+ "fileLength"+ fileLen);
+		if(fileLength != getFileLength())
+			throw new IOException(" FileLength mismatch. write happened after open "+ getFileLength()+ "fileLength"+ fileLength);
 
 	}
 
@@ -61,7 +65,41 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public synchronized long getPos() throws IOException {
-		return 0;
+		return filePos;
+	}
+
+
+	@Override
+	public synchronized int available() throws IOException {
+		if (closed) {
+			throw new IOException("Stream closed");
+		}
+		return (int) (getFileLength() - filePos);
+	}
+
+
+	@Override
+	public long skip(long n) throws IOException {
+		if ( n > 0 ) {
+			long curPos = getPos();
+			long fileLen = getFileLength();
+			if( n+curPos > fileLen ) {
+				n = fileLen - curPos;
+			}
+			seek(curPos+n);
+			return n;
+		}
+		return n < 0 ? -1 : 0;
+	}
+
+	@Override
+	public boolean markSupported() {
+		return false;
+	}
+
+	@Override
+	public void reset() throws IOException {
+		throw new IOException("Mark/reset not supported");
 	}
 
 	public synchronized boolean seekToNewSource(long targetPos) {
@@ -76,7 +114,7 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public synchronized int read(byte buf[], int off, int len) throws IOException{
-		System.out.println(" Read called with buf len "+buf.length+ "with offset "+off+" length "+len);
+		//System.out.println(" Read called with buf len "+buf.length+ "with offset "+off+" length "+len);
 		if(filePos >= getFileLength()){
 			return -1;
 			//throw new IOException(" FilePosition exceeded fileLength");
@@ -108,11 +146,34 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public synchronized void seek(long targetPos) throws IOException {
+		if (targetPos > getFileLength()) {
+			throw new IOException("Cannot seek after EOF");
+		}
+		boolean done = false;
+		if (filePos <= targetPos && targetPos <= currentBlockEnd) {
+			int diff = (int)(targetPos - filePos);
+			try {
+				filePos += blockReader.skip(diff);
+				if (filePos == targetPos) {
+					done = true;
+				}
+			} catch (IOException e) {
+				throw new IOException("Exception while seek to " + targetPos +" of " + src);
+			}
+		}
+		if (!done) {
+			filePos = targetPos;
+			currentBlockEnd = -1;
+		}
 
 	}
 
 	@Override
 	public void close() throws IOException {
+		if ( blockReader != null ) {
+			        blockReader.close();
+		}	
+		closed=true;
 	}
 
 	LocatedBlocks getBlockLocations(String src, long start, long length) throws IOException {
@@ -120,9 +181,11 @@ public class MDFSInputStream extends FSInputStream {
 		return namesystem.getBlockLocations(src, start, length);
 	}
 
-	private synchronized long getFileLength() {
+	private synchronized long getFileLength() throws IOException{
+		fileBlocks= getBlockLocations(src,0,Long.MAX_VALUE);
 		return (fileBlocks == null) ? 0 : fileBlocks.getFileLength();
 	}
+
 
 
 	private synchronized LocatedBlock getBlockAt(long offset,
@@ -160,14 +223,16 @@ public class MDFSInputStream extends FSInputStream {
 		System.out.println(" BlockLocation  of block "+blockId +" is "+ blockLoc);
 		System.out.println(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
 		
-		namesystem.retrieveBlock(src,blockLoc,blockId);
-		blockReader=new BlockReader(src,blockId);
+		try{
+			blockReader=new BlockReader(src,blockId);
+		}
+		catch(FileNotFoundException e){
 
+			System.out.println(" Retrieving file from network as file is not present Locally");
+			namesystem.retrieveBlock(src,blockLoc,blockId);
+			blockReader=new BlockReader(src,blockId);
 
-
-
-
-		
+		}
 		return blockReader;	
 		
 

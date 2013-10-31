@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.Set;
 
 import adhoc.etc.IOUtilities;
+import adhoc.etc.Logger;
+
+
 import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 
@@ -27,7 +30,7 @@ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
  *
  */
 public class MDFSDirectory implements Serializable {
-
+	private static final String TAG = MDFSDirectory.class.getSimpleName();
 	private static final long serialVersionUID = 1L;
 	private Map<Long, MDFSFileInfo> fileMap;	// Use File Creation Time as the key now. Should use UUID
 	private Map<String, Long> nameToKeyMap;		// Used to map from file name to file ID(createdTime)
@@ -123,8 +126,14 @@ public class MDFSDirectory implements Serializable {
 	
 	
 	public void addFile(MDFSFileInfo file){
-		fileMap.put(file.getCreatedTime(), file);
-		nameToKeyMap.put(file.getFileName(), file.getCreatedTime());
+		if(fileMap.put(file.getCreatedTime(), file) != null){
+			Logger.e(TAG," Error::: Hash Code "+ file.getCreatedTime()+" for file "+file.getFileName()+" is not unique");
+			System.exit(0);
+		}
+		if(nameToKeyMap.put(file.getFileName(), file.getCreatedTime()) != null){
+			Logger.e(TAG," Error::::FileName  "+file.getFileName()+" is not unique with Hash Code"+file.getCreatedTime());
+			System.exit(0);
+		}       
 	}
 	
 	/**

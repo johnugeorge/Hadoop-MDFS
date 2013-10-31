@@ -154,7 +154,7 @@ class MDFSINodeFile extends MDFSINode {
     this.blocks[idx] = blk;
   }
 
-  int collectSubtreeBlocksAndClear(List<Block> v) {
+  int collectSubtreeBlocksAndClear(List<BlockInfo> v) {
     parent = null;
     if (blocks != null && v != null) {
       for (BlockInfo blk : blocks) {

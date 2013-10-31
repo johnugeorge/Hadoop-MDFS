@@ -150,7 +150,7 @@ class MDFSCommunicator implements Runnable{
 	}
 
 
-	public void sendBlockOperation(BlockOperation blockOps) {
+	public boolean sendBlockOperation(BlockOperation blockOps) {
 		System.out.println(" Send Block Operations to Network");
 		System.out.println("Block Operation Elem "+blockOps.blockToOperate + " Operation "+ blockOps.operation);
 		int maxRetry = MAXRETRY;
@@ -167,7 +167,7 @@ class MDFSCommunicator implements Runnable{
 			}
 			else{
 				System.out.println(" Unknown Operation "+blockOps.operation);
-				return;
+				return false;
 			}
 
 			lock.lock();
@@ -198,6 +198,10 @@ class MDFSCommunicator implements Runnable{
 				System.out.println(" No of retries left is "+maxRetry);
 			}
 		}
+		if(maxRetry == 0)
+			return false;
+		else
+			return true;
 	}
 
 	public static void createFile(File file){

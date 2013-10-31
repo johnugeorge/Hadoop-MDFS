@@ -202,7 +202,7 @@ public class MDFSDirectory{
 		return dirNotEmpty;
 	}
 
-	boolean delete(String src, List<Block>collectedBlocks) throws IOException{
+	boolean delete(String src, List<BlockInfo>collectedBlocks) throws IOException{
 
 		MDFSINode[] inodes =  rootDir.getExistingPathMDFSINodes(src);
 		MDFSINode targetNode = inodes[inodes.length-1];

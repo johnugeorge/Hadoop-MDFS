@@ -99,6 +99,7 @@ public class TopologyHandler {
 		else{
 			retries= Constants.TOPOLOGY_DISCOVERY_MAX_RETRIES;//reset retries
 		}*/
+		timer.cancel();
 		while(!listenerQueue.isEmpty()){
 			listenerQueue.poll().onError(msg);
 		}
@@ -112,6 +113,7 @@ public class TopologyHandler {
 		//nodeInfo.clear();
 		//retries= Constants.TOPOLOGY_DISCOVERY_MAX_RETRIES;//reset retries
 		cachedMap.putAll(topMap);
+		timer.cancel();
 		List<NodeInfo> topList = new ArrayList<NodeInfo>(topMap.values());
 		while(!listenerQueue.isEmpty()){
 			listenerQueue.poll().onComplete(topList);

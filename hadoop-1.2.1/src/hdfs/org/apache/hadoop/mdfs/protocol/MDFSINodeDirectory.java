@@ -374,7 +374,7 @@ class MDFSINodeDirectory extends MDFSINode {
     return children;
   }
 
-  int collectSubtreeBlocksAndClear(List<Block> v) {
+  int collectSubtreeBlocksAndClear(List<BlockInfo> v) {
     int total = 1;
     if (children == null) {
       return total;

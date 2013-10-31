@@ -215,7 +215,7 @@ abstract class MDFSINode implements Comparable<byte[]>{
    * Count and return the number of files in the sub tree.
    * Also clears references since this MDFSINode is deleted.
    */
-  abstract int collectSubtreeBlocksAndClear(List<Block> v);
+  abstract int collectSubtreeBlocksAndClear(List<BlockInfo> v);
   abstract void printAllChildrenOfSubtrees();
 
   /**

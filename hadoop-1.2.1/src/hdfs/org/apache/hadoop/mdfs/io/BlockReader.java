@@ -34,7 +34,7 @@ public class BlockReader{
 
 
 	public int readBuffer(byte[] buffer,int offset,int length) throws IOException{
-		System.out.println("  Reading buffer offset "+ offset+" length "+length + " src "+src);
+		//System.out.println("  Reading buffer offset "+ offset+" length "+length + " src "+src);
 		return dataIn.read(buffer,offset,length);
 
 	}
@@ -42,6 +42,11 @@ public class BlockReader{
 	public void close() throws IOException{
 		System.out.println(" FileInputStream is closed for fileName "+src);
 		dataIn.close();
+	}
+
+	public long skip(long n) throws IOException{
+		System.out.println(" FileInputStream is skipped for fileName "+src);
+		return dataIn.skip(n);
 	}
 
 	public static String getBlockLocationInFS(String actualFileName,long blockId){

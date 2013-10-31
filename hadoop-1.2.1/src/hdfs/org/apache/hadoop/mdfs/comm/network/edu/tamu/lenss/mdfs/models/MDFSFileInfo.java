@@ -23,7 +23,6 @@ public class MDFSFileInfo implements Serializable {
 	private Set<Integer> fileStorage;
 	
 	public MDFSFileInfo(String fileName, long time, boolean isFragmented){
-		System.out.println(" MDFSFileInfo fileName "+fileName+" time "+time);
 		this.fileName = fileName;
 		this.createdTime = time;
 		this.fragmented = isFragmented;
@@ -113,8 +112,6 @@ public class MDFSFileInfo implements Serializable {
 	public static String getDirName(String fileName, long createdTime){
 		//SimpleDateFormat format =
 	        //    new SimpleDateFormat("MMddyyyy_HHmmss");
-		System.out.println("fileName getDirName"+fileName);
-		System.out.println("fileName getDirName"+fileName.substring(fileName.lastIndexOf("/")+1));
 		String tmp= fileName.substring(fileName.lastIndexOf("/")+1);
 		return tmp + "__" + createdTime;
 	}

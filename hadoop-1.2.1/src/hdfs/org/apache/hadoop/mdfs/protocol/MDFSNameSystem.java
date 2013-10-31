@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.hadoop.conf.Configuration;
+import java.util.Iterator;
 
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.mdfs.utils.DFSUtil;
@@ -14,6 +16,9 @@ import org.apache.hadoop.mdfs.protocol.Block;
 
 
 import edu.tamu.lenss.mdfs.comm.ServiceHelper;
+import edu.tamu.lenss.mdfs.models.DeleteFile;
+import  org.apache.hadoop.mdfs.io.BlockReader;
+
 
 public class MDFSNameSystem{
 
@@ -106,17 +111,25 @@ public class MDFSNameSystem{
 		if(isDir && (!mdfsDir.isDirEmpty(src))){
 			throw new IOException(src + " is non empty");
 		}
-		ArrayList<Block> collectedBlocks = new ArrayList<Block>();
+		ArrayList<BlockInfo> collectedBlocks = new ArrayList<BlockInfo>();
 		mdfsDir.delete(src,collectedBlocks);
-		removeBlocks(collectedBlocks);
+		removeBlocks(src,collectedBlocks);
 
 		return true;
 
 	}
 
-	private void removeBlocks(List<Block> blocks){
+	private void removeBlocks(String src,List<BlockInfo> blocks){
 
-			//handle actual deletion of blocks
+		//handle actual deletion of blocks
+		DeleteFile deleteFile = new DeleteFile();
+		Iterator<BlockInfo> iterator = blocks.iterator();
+		while (iterator.hasNext()) {
+			String fileName=BlockReader.getBlockWriteLocationInFS(src,iterator.next().getBlockId());
+			System.out.println(" Delete File "+fileName);
+			deleteFile.setFile(fileName,fileName.hashCode());
+		}
+		serviceHelper.deleteFiles(deleteFile);
 
 	}
 
@@ -146,7 +159,9 @@ public class MDFSNameSystem{
 			ll.addToMaxOneElemList(blockOps);
 		}
 		else{
-			commThread.sendBlockOperation(blockOps);
+			boolean ret=commThread.sendBlockOperation(blockOps);
+			if(!ret)
+				throw new IOException(" Block Creation Failed");
 		}
 		mdfsDir.notifyBlockAdded(src,blockId,bufCount);
 	}
@@ -158,7 +173,9 @@ public class MDFSNameSystem{
 			ll.addToMaxOneElemList(blockOps);
 		}
 		else{
-			commThread.sendBlockOperation(blockOps);
+			boolean ret=commThread.sendBlockOperation(blockOps);
+			if(!ret)
+				throw new IOException(" Block Retrieval Failed");
 		}
 	}
 
