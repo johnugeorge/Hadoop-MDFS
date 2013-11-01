@@ -31,7 +31,7 @@ public class BlockWriter{
 		}
 
 		dataOut = new FileOutputStream(fileName,append);
-		System.out.println(" Creating BlockWriter for fileName "+fileName);
+		System.out.println(" Creating BlockWriter for fileName "+fileName+" append "+append+" length "+f.length());
 
 	}
 
@@ -47,7 +47,7 @@ public class BlockWriter{
 	}
 
 	public static String getBlockLocationInFS(String actualFileName,long blockId){
-		System.out.println(" Temporary  Data value "+ Constants.MDFS_HADOOP_DATA_DIR);
+		//System.out.println(" Temporary  Data value "+ Constants.MDFS_HADOOP_DATA_DIR);
 		String blockLoc= Constants.MDFS_HADOOP_DATA_DIR+actualFileName+"/Blocks/Block-"+ (new Long(blockId)).toString();
 		return blockLoc;
 	}

@@ -74,12 +74,12 @@ public class DeleteFileHandler {
 				directory.removeKeyFragment(fileId);
 				
 				// Remove Encrypted File
-				File file = new File(rootDir, "encrypted/" + fName);
+				File file = new File(rootDir, "encrypted/" + MDFSFileInfo.getDirName(fName, fileId));
 				if(file.exists())
 					file.delete();
 
 				// Remove Decrypted File
-				file = new File(rootDir, "decrypted/" + fName);
+				file = new File(rootDir, "decrypted/" + MDFSFileInfo.getDirName(fName, fileId));
 				if(file.exists())
 					file.delete();
 				

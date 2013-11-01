@@ -56,7 +56,7 @@ public class MDFSOutputStream extends OutputStream {
 
 		LocatedBlocks blocks= getBlockLocations(src,0,Long.MAX_VALUE);
 		System.out.println(" Total number of blocks " + blocks.getLocatedBlocks().size());
-		System.out.println(" blockSize "+blockSize+" bufferSize "+bufferSize);
+		System.out.println(" blockSize "+blockSize+" bufferSize "+bufferSize+ "FileLength "+blocks.getFileLength());
 		if(blocks.getLocatedBlocks().size() != 0){
 			if(!append){
 				throw new IOException(" Blocks are present for Create Operation");
@@ -79,6 +79,8 @@ public class MDFSOutputStream extends OutputStream {
 			}
 			else{
 				blockOffset=lastBlock.getBlock().getNumBytes();
+				BlockCopier.makeAvailableForAppend(namesystem,src,lastBlock.getBlock().getBlockId());
+				System.out.println("Retrieved block append"+ lastBlock.getBlock().getBlockId()+ " blockOffset "+blockOffset);
 				writer=new BlockWriter(src,lastBlock.getBlock().getBlockId(),true);//TODO last block is not present locally
 				addNewBlock=false;
 			}

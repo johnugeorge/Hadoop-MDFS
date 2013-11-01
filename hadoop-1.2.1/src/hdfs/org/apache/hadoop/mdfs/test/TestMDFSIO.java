@@ -71,7 +71,7 @@ class TestMDFSIO{
 		br.close();
 		System.out.println(" going to read");
 
-		FSDataInputStream in=fs.open(path,4191);
+	/*	FSDataInputStream in=fs.open(path,4191);
 		//BufferedReader rd = new BufferedReader( new InputStreamReader( in, "UTF-8" ) );
 
 		byte[] b1 = new byte[20000];
@@ -175,17 +175,63 @@ class TestMDFSIO{
 			count+= a;
 		}
 		System.out.println("Buf Size 20000: Total Read Count "+count);//nothing to read
+*/
+		System.out.println(" Append 1 Operation");
 
-
-		//OutputStream appendout2=fs.append(path,18,null);//append
-		//br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
-		//i=0;
+		OutputStream appendout2=fs.append(path,18,null);//append
+		br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
+		i=0;
 		//while(i<1000){
-		//br.write("Append");
+		br.write("First");
 		//i++;}
-		//br.close();
+		br.close();
+		
+		System.out.println(" Append 2 Operation");
 
+		appendout2=fs.append(path,18,null);//append
+		br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
+		i=0;
+		//while(i<1000){
+		br.write("Second");
+		//i++;}
+		br.close();
 
+		FSDataInputStream in=fs.open(path,4191);
+		//BufferedReader rd = new BufferedReader( new InputStreamReader( in, "UTF-8" ) );
+
+		byte[] b1 = new byte[20000];
+		int a=0;
+		int count=0;
+		while((a=in.read()) !=-1){
+			count++;
+		//int bytesRead = in.read(b1, 0, 10);
+		//System.out.println(" Read String is "+(char)a);
+		}
+		System.out.println("Buf Size 1: Total Read Count "+count);
+
+		System.out.println(" Append 3 Operation");
+
+		appendout2=fs.append(path,18,null);//append
+		br = new BufferedWriter( new OutputStreamWriter( appendout2, "UTF-8" ) );
+		i=0;
+		//while(i<1000){
+		br.write("Third");
+		//i++;}
+		br.close();
+
+		in=fs.open(path,4191);
+		in.seek(4321);
+		//BufferedReader rd = new BufferedReader( new InputStreamReader( in, "UTF-8" ) );
+
+		b1 = new byte[20000];
+		a=0;
+		count=0;
+		while((a=in.read(b1,0,10000)) !=-1){
+			count += a;
+		//int bytesRead = in.read(b1, 0, 10);
+		//System.out.println(" Read String is "+(char)a);
+		}
+		System.out.println("Buf Size 10000: Total Read Count "+count);
 
 		System.out.println("Write Successful");
 		fs.listStatus(new Path("/"));
@@ -193,9 +239,9 @@ class TestMDFSIO{
 		fs.listStatus(new Path("/dir3"));
 		System.out.println(" ");
 
-		System.out.println("Going to delete File");
-		fs.delete(path,false);
-		System.out.println("delete Successful");
+		//System.out.println("Going to delete File");
+		//fs.delete(path,false);
+		//System.out.println("delete Successful");
 		fs.listStatus(new Path("/"));
 		System.out.println(" ");
 		fs.listStatus(new Path("/dir3"));

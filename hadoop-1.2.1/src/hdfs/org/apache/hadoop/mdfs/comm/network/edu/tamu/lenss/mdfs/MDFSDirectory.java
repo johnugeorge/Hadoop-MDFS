@@ -128,15 +128,15 @@ public class MDFSDirectory implements Serializable {
 	public void addFile(MDFSFileInfo file){
 		if(fileMap.containsKey(file.getCreatedTime())){
 			MDFSFileInfo tmp= fileMap.get(file.getCreatedTime());
-			if(tmp.getFileName() != file.getFileName()){
-				Logger.e(TAG," Error::: FileMap already has the value.Hash Code "+ file.getCreatedTime()+" for file "+file.getFileName()+" is not unique");
+			if(!tmp.getFileName().equals(file.getFileName())){
+				Logger.e(TAG," Error::: FileMap already has the value. "+ tmp.getFileName()+" Hash Code "+ file.getCreatedTime()+" for file "+file.getFileName()+" is not unique.");
 				System.exit(0);
 			}
 		}
 		if(nameToKeyMap.containsKey(file.getFileName())){
 			long tmpVal=  nameToKeyMap.get(file.getFileName());
 			if(tmpVal  != file.getCreatedTime()){
-				Logger.e(TAG," Error::: NametoKeyMap already has the Value. Hash Code "+ file.getCreatedTime()+" for file "+file.getFileName()+" is not unique");
+				Logger.e(TAG," Error::: NametoKeyMap already has the Value."+ tmpVal+" Hash Code "+ file.getCreatedTime()+" for file "+file.getFileName()+" is not unique");
 				System.exit(0);
 			}
 		}

@@ -51,7 +51,7 @@ public class MDFSInputStream extends FSInputStream {
 		this.closed=false;
 
 		fileBlocks= getBlockLocations(src,0,Long.MAX_VALUE);
-		System.out.println(" Total number of blocks " + fileBlocks.getLocatedBlocks().size());
+		System.out.println(" Total number of blocks " + fileBlocks.getLocatedBlocks().size()+" getFileLength() "+getFileLength());
 		System.out.println(" blockSize "+blockSize+" bufferSize "+bufferSize);
 		if(fileLength != getFileLength())
 			throw new IOException(" FileLength mismatch. write happened after open "+ getFileLength()+ "fileLength"+ fileLength);
@@ -224,13 +224,13 @@ public class MDFSInputStream extends FSInputStream {
 		System.out.println(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
 		
 		try{
-			blockReader=new BlockReader(src,blockId);
+			blockReader=new BlockReader(namesystem,src,blockId);
 		}
 		catch(FileNotFoundException e){
 
 			System.out.println(" Retrieving file from network as file is not present Locally");
 			namesystem.retrieveBlock(src,blockLoc,blockId);
-			blockReader=new BlockReader(src,blockId);
+			blockReader=new BlockReader(namesystem,src,blockId);
 
 		}
 		return blockReader;	
