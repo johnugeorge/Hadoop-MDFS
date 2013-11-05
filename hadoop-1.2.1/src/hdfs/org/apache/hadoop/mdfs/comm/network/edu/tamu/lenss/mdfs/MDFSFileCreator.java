@@ -89,7 +89,7 @@ public class MDFSFileCreator {
 		String absPath=file.getAbsolutePath();
 		fileName=file.getName();;
 		if(absPath.startsWith(Constants.MDFS_HADOOP_DATA_DIR))
-			fileName=absPath.substring(Constants.MDFS_HADOOP_DATA_DIR.length()-1);
+			fileName=absPath.substring(Constants.MDFS_HADOOP_DATA_DIR.length());
 		else
 			System.out.println(" It doesn't start with MDFS_HADOOP_DATA_DIR"+Constants.MDFS_HADOOP_DATA_DIR);
 		System.out.println(" File to be created "+fileName);

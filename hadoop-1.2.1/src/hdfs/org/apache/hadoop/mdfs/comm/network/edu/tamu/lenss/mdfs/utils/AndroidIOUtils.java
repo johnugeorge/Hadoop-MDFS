@@ -13,7 +13,7 @@ public class AndroidIOUtils {
 	 */
 	public static File getExternalFile(String path) {
 		//return new File(Environment.getExternalStorageDirectory(), path);
-		return new File("tmp", path);
+		return new File("/", path);
 	}
 	
 	public static boolean isExternalStorageAvailable(){

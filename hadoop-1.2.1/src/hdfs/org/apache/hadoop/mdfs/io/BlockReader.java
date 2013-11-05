@@ -93,7 +93,8 @@ public class BlockReader{
 
 	public static String getBlockLocationInFS(String actualFileName,long blockId){
 		String tmp=actualFileName+"/Blocks/Block-"+(new Long(blockId)).toString();
-		String blockLoc= "tmp/"+Constants.DIR_DECRYPTED+"/Block-"+ (new Long(blockId)).toString();
+		//String blockLoc= "tmp/"+Constants.DIR_DECRYPTED+"/Block-"+ (new Long(blockId)).toString();
+		String blockLoc= Constants.DIR_DECRYPTED+"/Block-"+ (new Long(blockId)).toString();
 		blockLoc += "__"+tmp.hashCode();
 		//System.out.println(" Read  getBlockLocationInFS string "+blockLoc+" acutalFileName "+tmp);
 		return blockLoc;
