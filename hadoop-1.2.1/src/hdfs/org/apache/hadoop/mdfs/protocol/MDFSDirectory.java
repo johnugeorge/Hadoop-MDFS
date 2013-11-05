@@ -23,13 +23,13 @@ public class MDFSDirectory{
 
 
 	private static MDFSINodeDirectory rootDir;
-	private MDFSNameSystem namesystem;
+	private MDFSNameService namesystem;
 	private Configuration conf;
 	private long blockId;
 	private TreeMap<Block, NodeInfo> treemap;
 
 
-	public MDFSDirectory (MDFSNameSystem namesystem,Configuration conf){
+	public MDFSDirectory (MDFSNameService namesystem,Configuration conf){
 		this.namesystem = namesystem;
 		this.conf=conf;
 		blockId=0;

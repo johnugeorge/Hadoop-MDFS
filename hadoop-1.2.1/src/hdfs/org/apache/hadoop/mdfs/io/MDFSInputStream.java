@@ -12,7 +12,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 
-import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
+import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol;
+import org.apache.hadoop.mdfs.protocol.MDFSDataProtocol;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 import org.apache.hadoop.mdfs.utils.MountFlags;
 import org.apache.hadoop.mdfs.protocol.BlockInfo;
@@ -25,7 +26,8 @@ public class MDFSInputStream extends FSInputStream {
 	private boolean closed = false;
 	private String src;
 	final private long blockSize;
-	private MDFSProtocol namesystem;
+	private MDFSNameProtocol namesystem;
+	private MDFSDataProtocol datasystem;
 	private long fileLength;
 	private long bufferSize;
 	private LocatedBlocks fileBlocks;
@@ -39,10 +41,11 @@ public class MDFSInputStream extends FSInputStream {
 
 
 
-	public MDFSInputStream(MDFSProtocol namesystem,Configuration conf,String src,long fileLength,long blockSize,int bufLen) throws IOException{
+	public MDFSInputStream(MDFSNameProtocol namesystem,MDFSDataProtocol datasystem,Configuration conf,String src,long fileLength,long blockSize,int bufLen) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.namesystem = namesystem;
+		this.datasystem = datasystem;
 		this.fileLength = fileLength;
 		this.bufferSize=bufLen;
 		this.filePos=0;
@@ -229,7 +232,7 @@ public class MDFSInputStream extends FSInputStream {
 		catch(FileNotFoundException e){
 
 			System.out.println(" Retrieving file from network as file is not present Locally");
-			namesystem.retrieveBlock(src,blockLoc,blockId);
+			datasystem.retrieveBlock(src,blockLoc,blockId);
 			blockReader=new BlockReader(namesystem,src,blockId);
 
 		}

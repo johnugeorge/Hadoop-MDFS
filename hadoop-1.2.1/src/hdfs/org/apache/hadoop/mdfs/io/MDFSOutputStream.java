@@ -3,13 +3,15 @@ package org.apache.hadoop.mdfs.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
+import org.apache.hadoop.mdfs.protocol.MDFSDataProtocol;
+import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 import org.apache.hadoop.mdfs.utils.MountFlags;
 import org.apache.hadoop.mdfs.protocol.BlockInfo;
@@ -25,7 +27,8 @@ public class MDFSOutputStream extends OutputStream {
 	final private long blockSize;
 	private short blockReplication; // replication factor of file
 	private Progressable progress;
-	private MDFSProtocol namesystem;
+	private MDFSNameProtocol namesystem;
+	private MDFSDataProtocol datasystem;
 	private LocatedBlock lastBlock;
 	private byte buffer[];
 	private int bufCount;
@@ -37,12 +40,13 @@ public class MDFSOutputStream extends OutputStream {
 
 
 
-	public MDFSOutputStream(MDFSProtocol namesystem,Configuration conf,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
+	public MDFSOutputStream(MDFSNameProtocol namesystem,MDFSDataProtocol datasystem,Configuration conf,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.blockReplication = replication;
 		this.progress = progress;
 		this.namesystem = namesystem;
+		this.datasystem = datasystem;
 		this.buffer= new byte[bufferSize];
 		this.bufCount=0;
 		this.blockOffset=0;
@@ -52,7 +56,8 @@ public class MDFSOutputStream extends OutputStream {
 		lastBlock=null;
 		addNewBlock=true;
 
-		namesystem.addNewFile(src,flags,createParent,permission,replication,blockSize);
+		BlockInfo[] listOfBlocks=namesystem.addNewFile(src,flags,createParent,permission,replication,blockSize);
+		datasystem.removeBlocks(src,listOfBlocks);
 
 		LocatedBlocks blocks= getBlockLocations(src,0,Long.MAX_VALUE);
 		System.out.println(" Total number of blocks " + blocks.getLocatedBlocks().size());
@@ -79,7 +84,7 @@ public class MDFSOutputStream extends OutputStream {
 			}
 			else{
 				blockOffset=lastBlock.getBlock().getNumBytes();
-				BlockCopier.makeAvailableForAppend(namesystem,src,lastBlock.getBlock().getBlockId());
+				BlockCopier.makeAvailableForAppend(namesystem,datasystem,src,lastBlock.getBlock().getBlockId());
 				System.out.println("Retrieved block append"+ lastBlock.getBlock().getBlockId()+ " blockOffset "+blockOffset);
 				writer=new BlockWriter(src,lastBlock.getBlock().getBlockId(),true);//TODO last block is not present locally
 				addNewBlock=false;
@@ -97,7 +102,9 @@ public class MDFSOutputStream extends OutputStream {
 					throw new IOException("lastBlock is Null");
 				long blockId= lastBlock.getBlock().getBlockId();
 				String blockLoc=writer.getBlockLocationInFS(src,blockId);
-				namesystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
+				datasystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
+				namesystem.notifyBlockAdded(src,blockId,blockOffset);
+
 				blockOffset=0;
 				writer.close();
 			}
@@ -162,7 +169,9 @@ public class MDFSOutputStream extends OutputStream {
 		if(lastBlock != null){
 			long blockId= lastBlock.getBlock().getBlockId();
 			String blockLoc=writer.getBlockLocationInFS(src,blockId);
-			namesystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
+			datasystem.notifyBlockAdded(src,blockLoc,blockId,blockOffset);
+			namesystem.notifyBlockAdded(src,blockId,blockOffset);
+
 			writer.close();
 		}
 

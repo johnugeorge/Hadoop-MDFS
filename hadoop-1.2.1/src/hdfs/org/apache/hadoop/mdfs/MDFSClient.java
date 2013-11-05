@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
@@ -15,20 +16,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.util.Progressable;
 
-import org.apache.hadoop.mdfs.protocol.MDFSNameSystem;
+import org.apache.hadoop.mdfs.protocol.MDFSNameService;
+import org.apache.hadoop.mdfs.protocol.MDFSDataService;
 import org.apache.hadoop.mdfs.protocol.MDFSFileStatus;
-import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
+import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol;
+import org.apache.hadoop.mdfs.protocol.BlockInfo;
+import org.apache.hadoop.mdfs.protocol.MDFSDataProtocol;
 import org.apache.hadoop.mdfs.io.MDFSOutputStream;
 import org.apache.hadoop.mdfs.io.MDFSInputStream;
 
 import org.apache.hadoop.ipc.RPC;
+import adhoc.etc.IOUtilities;
 
 
 class MDFSClient {
 
 	private short defaultReplication;
 	private boolean clientRunning;
-	private MDFSProtocol namesystem;
+	private MDFSNameProtocol namesystem;
+	private MDFSDataProtocol datasystem;
 	private Configuration conf;
 
 	public MDFSClient(Configuration conf) {
@@ -41,16 +47,25 @@ class MDFSClient {
 	void initialize(URI uri, Configuration conf) throws IOException {
 
 		clientRunning=true;
-		//this.namesystem = MDFSNameSystem.getInstance(conf);
-		InetSocketAddress nodeAddr = MDFSNameSystem.getAddress(conf);
-		System.out.println(" Going to connect to MDFSNameSystem ");
+		InetSocketAddress nodeAddr = MDFSNameService.getAddress(conf);
+		System.out.println(" Going to connect to MDFSNameService ");
 
-		this.namesystem =  (MDFSProtocol) 
-			RPC.waitForProxy(MDFSProtocol.class,
-					MDFSProtocol.versionID,
+		this.namesystem =  (MDFSNameProtocol) 
+			RPC.waitForProxy(MDFSNameProtocol.class,
+					MDFSNameProtocol.versionID,
 					nodeAddr, 
 					conf);
-		System.out.println(" Connected to MDFSNameSystem ");
+		System.out.println(" Connected to MDFSNameService ");
+		nodeAddr= MDFSDataService.getAddress(IOUtilities.getLocalIpAddress());
+		System.out.println(" Going to connect to MDFSDataService ");
+
+		this.datasystem =  (MDFSDataProtocol) 
+			RPC.waitForProxy(MDFSDataProtocol.class,
+					MDFSDataProtocol.versionID,
+					nodeAddr, 
+					conf);
+		System.out.println(" Connected to MDFSDataService ");
+
 		this.conf=conf;
 	}
 
@@ -64,7 +79,7 @@ class MDFSClient {
 			permission = FsPermission.getDefault();
 		}
 
-		MDFSOutputStream result= new MDFSOutputStream(namesystem,conf,pathString(path),flags,permission, createParent,replication,blockSize,progress,bufferSize);
+		MDFSOutputStream result= new MDFSOutputStream(namesystem,datasystem,conf,pathString(path),flags,permission, createParent,replication,blockSize,progress,bufferSize);
 		return result;
 
 	}
@@ -73,7 +88,7 @@ class MDFSClient {
 	MDFSInputStream open(Path path, long length,long blockSize,int bufferSize) throws IOException {
 
 	
-		MDFSInputStream result = new MDFSInputStream(namesystem,conf,pathString(path),length,blockSize,bufferSize);
+		MDFSInputStream result = new MDFSInputStream(namesystem,datasystem,conf,pathString(path),length,blockSize,bufferSize);
 
 		return result;
 	}
@@ -87,7 +102,8 @@ class MDFSClient {
 
 	void rmdir(Path path, boolean isDir) throws IOException {
 
-		namesystem.delete(pathString(path),isDir);
+		BlockInfo[] blocks=namesystem.delete(pathString(path),isDir);
+		datasystem.removeBlocks(pathString(path),blocks);
 	}
 
 

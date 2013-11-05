@@ -10,7 +10,7 @@ import java.lang.InterruptedException;
 
 import edu.tamu.lenss.mdfs.Constants;
 
-import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
+import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol;
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 
@@ -19,14 +19,14 @@ import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 public class BlockReader{
 	FileInputStream dataIn;
 	String src;
-	MDFSProtocol namesystem;
+	MDFSNameProtocol namesystem;
 
-	BlockReader(MDFSProtocol namesystem,String actualFileName,long blockId) throws FileNotFoundException,IOException{
+	BlockReader(MDFSNameProtocol namesystem,String actualFileName,long blockId) throws FileNotFoundException,IOException{
 		this(namesystem,blockId,actualFileName,getBlockLocationInFS(actualFileName,blockId));
 	}
 
 
-	BlockReader(MDFSProtocol namesystem,long blockId,String actualFileName,String fileName) throws FileNotFoundException,IOException{
+	BlockReader(MDFSNameProtocol namesystem,long blockId,String actualFileName,String fileName) throws FileNotFoundException,IOException{
 		this.namesystem=namesystem;
 		src=fileName;
 		File f = new File(fileName);

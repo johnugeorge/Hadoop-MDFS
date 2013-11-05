@@ -12,7 +12,8 @@ import java.io.File;
 
 import edu.tamu.lenss.mdfs.Constants;
 
-import org.apache.hadoop.mdfs.protocol.MDFSProtocol; 
+import org.apache.hadoop.mdfs.protocol.MDFSDataProtocol; 
+import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol; 
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 
@@ -20,7 +21,7 @@ import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 public class BlockCopier{
 
 
-	public static void makeAvailableForAppend(MDFSProtocol namesystem,String src,long blockId) throws IOException{
+	public static void makeAvailableForAppend(MDFSNameProtocol namesystem,MDFSDataProtocol datasystem,String src,long blockId) throws IOException{
 
 		boolean retrieve=false;
 		boolean found=false;
@@ -66,7 +67,7 @@ public class BlockCopier{
 
 		String blockLoc= BlockReader.getBlockWriteLocationInFS(src,blockId);
 		if(!f.exists() || retrieve){
-			namesystem.retrieveBlock(src,blockLoc,blockId);
+			datasystem.retrieveBlock(src,blockLoc,blockId);
 		}
 		File srcFile= new File(blockLocIfExists);
 		if(!srcFile.exists()){
