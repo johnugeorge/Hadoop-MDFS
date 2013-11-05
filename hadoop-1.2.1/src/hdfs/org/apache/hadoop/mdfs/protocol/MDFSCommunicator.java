@@ -222,6 +222,7 @@ class MDFSCommunicator implements Runnable{
 			System.err.println("Creation Error:     " + error);
 			lock.lock();
 			isSuccess =false;
+			System.out.println("File Creation Error. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
@@ -233,13 +234,13 @@ class MDFSCommunicator implements Runnable{
 			finally {
 				lock.unlock();
 			}
-			System.out.println("File Creation Error. ");
 		}
 
 		@Override
 		public void onComplete() {
 			lock.lock();
 			isSuccess =true;
+			System.out.println("File Creation Complete. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
@@ -251,7 +252,6 @@ class MDFSCommunicator implements Runnable{
 			finally {
 				lock.unlock();
 			}
-			System.out.println("File Creation Complete. ");
 		}
 
 	};
@@ -280,6 +280,7 @@ class MDFSCommunicator implements Runnable{
 			System.err.println("Retrieval Error:     " + error);
 			lock.lock();
 			isSuccess =false;
+			System.out.println("File Retrieval Error. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
@@ -291,13 +292,13 @@ class MDFSCommunicator implements Runnable{
 			finally {
 				lock.unlock();
 			}
-			System.out.println("File Retrieval Error. ");
 		}
 
 		@Override
 		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo) {
 			lock.lock();
 			isSuccess =true;
+			System.out.println("File Retrieval Complete. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
@@ -309,7 +310,6 @@ class MDFSCommunicator implements Runnable{
 			finally {
 				lock.unlock();
 			}
-			System.out.println("File Retrieval Complete. ");
 		}
 
 	};

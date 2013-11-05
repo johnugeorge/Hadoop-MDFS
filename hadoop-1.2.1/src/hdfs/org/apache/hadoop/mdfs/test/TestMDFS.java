@@ -20,6 +20,8 @@ class TestMDFS{
 
 		MobileDistributedFileSystem fs = new MobileDistributedFileSystem();
 		Configuration conf = new Configuration();
+		conf.set("fs.default.name","mdfs://192.168.1.10:9000");
+
 		fs.initialize(URI.create("mdfs://localhost:9000"),conf);
 
 		Path path=new Path("/dir0");

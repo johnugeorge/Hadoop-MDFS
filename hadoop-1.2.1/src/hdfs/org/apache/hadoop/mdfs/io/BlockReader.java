@@ -10,7 +10,7 @@ import java.lang.InterruptedException;
 
 import edu.tamu.lenss.mdfs.Constants;
 
-import org.apache.hadoop.mdfs.protocol.MDFSNameSystem;
+import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 
@@ -19,14 +19,14 @@ import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 public class BlockReader{
 	FileInputStream dataIn;
 	String src;
-	MDFSNameSystem namesystem;
+	MDFSProtocol namesystem;
 
-	BlockReader(MDFSNameSystem namesystem,String actualFileName,long blockId) throws FileNotFoundException,IOException{
+	BlockReader(MDFSProtocol namesystem,String actualFileName,long blockId) throws FileNotFoundException,IOException{
 		this(namesystem,blockId,actualFileName,getBlockLocationInFS(actualFileName,blockId));
 	}
 
 
-	BlockReader(MDFSNameSystem namesystem,long blockId,String actualFileName,String fileName) throws FileNotFoundException,IOException{
+	BlockReader(MDFSProtocol namesystem,long blockId,String actualFileName,String fileName) throws FileNotFoundException,IOException{
 		this.namesystem=namesystem;
 		src=fileName;
 		File f = new File(fileName);
@@ -37,7 +37,7 @@ public class BlockReader{
 			System.out.println(" File to be read doesn't exist.Hence fetching the block "+fileName);
 		}
 		else{
-			while(true){
+			//while(true){
 				LocatedBlocks blocks= namesystem.getBlockLocations(actualFileName, 0,Long.MAX_VALUE);
 				for(LocatedBlock b:blocks.getLocatedBlocks()){
 					if(b.getBlock().getBlockId() == blockId){
@@ -50,19 +50,20 @@ public class BlockReader{
 						break;
 					}
 				}
-				if(found)
-					break;
-				if(found==false && retry <0 ){
+				//if(found)
+				//	break;
+				//if(found==false && retry <0 ){
+				if(found==false ){
 					throw new IOException(" Block id "+blockId+" is not found in namespace of file "+actualFileName);
 				}
-				try{
-					Thread.sleep(1000);
-				}
-				catch(InterruptedException e){
-					System.out.println(" InterruptedException caught");
-				}
-				retry--;
-			}
+				//try{
+				//	Thread.sleep(1000);
+				//}
+				//catch(InterruptedException e){
+				//	System.out.println(" InterruptedException caught");
+				//}
+				//retry--;
+			//}
 			System.out.println(" Same file already exists for read  "+fileName);
 
 		}

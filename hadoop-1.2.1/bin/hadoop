@@ -259,6 +259,9 @@ if [ "$COMMAND" = "classpath" ] ; then
 elif [ "$COMMAND" = "namenode" ] ; then
   CLASS='org.apache.hadoop.hdfs.server.namenode.NameNode'
   HADOOP_OPTS="$HADOOP_OPTS $HADOOP_NAMENODE_OPTS"
+elif [ "$COMMAND" = "mdfs" ] ; then
+  CLASS='org.apache.hadoop.mdfs.protocol.MDFSNameSystem'
+  HADOOP_OPTS="$HADOOP_OPTS $HADOOP_NAMENODE_OPTS"
 elif [ "$COMMAND" = "secondarynamenode" ] ; then
   CLASS='org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode'
   HADOOP_OPTS="$HADOOP_OPTS $HADOOP_SECONDARYNAMENODE_OPTS"
@@ -355,6 +358,9 @@ if [ -d "${HADOOP_HOME}/build/native" -o -d "${HADOOP_HOME}/lib/native" -o -e "$
 
   if [ -d "$HADOOP_HOME/build/native" ]; then
     JAVA_LIBRARY_PATH=${HADOOP_HOME}/build/native/${JAVA_PLATFORM}/lib
+  fi
+  if [ -d "$HADOOP_HOME/native/lib" ]; then
+    JAVA_LIBRARY_PATH=${HADOOP_HOME}/native/lib
   fi
   
   if [ -d "${HADOOP_HOME}/lib/native" ]; then

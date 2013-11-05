@@ -12,7 +12,7 @@ import java.io.File;
 
 import edu.tamu.lenss.mdfs.Constants;
 
-import org.apache.hadoop.mdfs.protocol.MDFSNameSystem; 
+import org.apache.hadoop.mdfs.protocol.MDFSProtocol; 
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 
@@ -20,7 +20,7 @@ import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 public class BlockCopier{
 
 
-	public static void makeAvailableForAppend(MDFSNameSystem namesystem,String src,long blockId) throws IOException{
+	public static void makeAvailableForAppend(MDFSProtocol namesystem,String src,long blockId) throws IOException{
 
 		boolean retrieve=false;
 		boolean found=false;
@@ -28,7 +28,7 @@ public class BlockCopier{
 		String blockLocIfExists=BlockReader.getBlockLocationInFS(src,blockId);
 		File f=new File(blockLocIfExists);
 		if(f.exists()){
-			while(true){
+			//while(true){
 				LocatedBlocks blocks= namesystem.getBlockLocations(src, 0,Long.MAX_VALUE);
 				for(LocatedBlock b:blocks.getLocatedBlocks()){
 					if(b.getBlock().getBlockId() == blockId){
@@ -41,20 +41,21 @@ public class BlockCopier{
 						break;
 					}
 				}
-				if(found)
-					break;
-				if(found==false && retry <0 ){
+				//if(found)
+				//	break;
+				//if(found==false && retry <0 ){
+				if(found==false){
 					throw new IOException(" Block id "+blockId+" is not found in namespace of file "+src);
 				}
-				try{
-					Thread.sleep(1000);
-				}
-				catch(InterruptedException e){
-					System.out.println(" InterruptedException caught");
-				}
+				//try{
+				//	Thread.sleep(1000);
+				//}
+				//catch(InterruptedException e){
+				//	System.out.println(" InterruptedException caught");
+				//}
 
-				retry--;
-			}
+				//retry--;
+			//}
 			if(retrieve == false){
 				System.out.println(" Same file already exists for append "+src +" length "+f.length()+" actualBlockLoc" +blockLocIfExists);
 			}

@@ -35,6 +35,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 	}
 
 	public MobileDistributedFileSystem() {
+		System.out.println(" MDFS Constructor called");
 	}
 
 
@@ -58,6 +59,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 		this.uri = URI.create(uri.getScheme()+"://"+uri.getAuthority());
 		this.workingDir = getHomeDirectory();
+		System.out.println(" MDFS Initialized");
 
 	}
 
@@ -110,6 +112,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 	}
 
 	public FSDataInputStream open(Path path, int bufferSize) throws IOException {
+		System.out.println(" Opening path "+path.toString());
 		path = makeAbsolute(path);
 
 		MDFSFileStatus stat = mdfs.lstat(path);
@@ -124,6 +127,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 	  public FSDataOutputStream create(Path path, FsPermission permission,
 			        boolean overwrite, int bufferSize, short replication, long blockSize,
 				      Progressable progress) throws IOException {
+		System.out.println(" creating path "+path.toString()+ " overwrite "+overwrite);
 		statistics.incrementWriteOps(1);
 
 		path = makeAbsolute(path);
@@ -159,6 +163,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 	public FSDataOutputStream append(Path path, int bufferSize,
 			Progressable progress) throws IOException {
+		System.out.println(" Appending path "+path.toString());
 		path = makeAbsolute(path);
 
 		if (progress != null) {
@@ -179,6 +184,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 
 	@Override
 	public boolean mkdirs(Path path, FsPermission perms) throws IOException {
+		System.out.println(" mkdir path "+path.toString());
 		path = makeAbsolute(path);
 
 		boolean result = true;
@@ -192,6 +198,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 	}
 
 	public boolean delete(Path path, boolean recursive) throws IOException {
+		System.out.println(" Deleting path "+path.toString()+ " recursive "+recursive);
 		path = makeAbsolute(path);
 
 		/* path exists? */
@@ -199,7 +206,10 @@ public class MobileDistributedFileSystem extends FileSystem{
 		try {
 			status = getFileStatus(path);
 		} catch (FileNotFoundException e) {
-			throw new FileNotFoundException(" Not deleting the file as path doesn't exist "+path.toString());
+			//TODO for now returning false
+			System.out.println("Returning and Not deleting the file as path doesn't exist "+path.toString());
+			return false;
+			//throw new FileNotFoundException(" Not deleting the file as path doesn't exist "+path.toString());
 		}
 
 		/* we're done if its a file */

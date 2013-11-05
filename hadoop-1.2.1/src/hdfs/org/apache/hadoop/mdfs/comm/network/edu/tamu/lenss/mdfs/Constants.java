@@ -21,7 +21,7 @@ public final class Constants {
 	public static final String DIR_DECRYPTED = DIR_ROOT + "/decrypted";
 	public static final String DIR_ENCRYPTED = DIR_ROOT + "/encrypted";
 	
-	public static final String MDFS_HADOOP_DATA_DIR = "/tmp/MDFS/hadoop/";
+	public static final String MDFS_HADOOP_DATA_DIR = "/tmp/MDFS/hadoop";
 	
 	public static final String NAME_MDFS_DIRECTORY = "mdfs_directory";
 	

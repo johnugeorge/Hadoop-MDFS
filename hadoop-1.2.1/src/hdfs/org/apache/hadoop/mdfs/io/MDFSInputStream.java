@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 
-import org.apache.hadoop.mdfs.protocol.MDFSNameSystem;
+import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 import org.apache.hadoop.mdfs.utils.MountFlags;
 import org.apache.hadoop.mdfs.protocol.BlockInfo;
@@ -25,7 +25,7 @@ public class MDFSInputStream extends FSInputStream {
 	private boolean closed = false;
 	private String src;
 	final private long blockSize;
-	private MDFSNameSystem namesystem;
+	private MDFSProtocol namesystem;
 	private long fileLength;
 	private long bufferSize;
 	private LocatedBlocks fileBlocks;
@@ -39,7 +39,7 @@ public class MDFSInputStream extends FSInputStream {
 
 
 
-	public MDFSInputStream(MDFSNameSystem namesystem,Configuration conf,String src,long fileLength,long blockSize,int bufLen) throws IOException{
+	public MDFSInputStream(MDFSProtocol namesystem,Configuration conf,String src,long fileLength,long blockSize,int bufLen) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.namesystem = namesystem;

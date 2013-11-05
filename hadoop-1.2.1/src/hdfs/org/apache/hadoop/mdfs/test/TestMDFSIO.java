@@ -20,6 +20,7 @@ class TestMDFSIO{
 
 		MobileDistributedFileSystem fs = new MobileDistributedFileSystem();
 		Configuration conf = new Configuration();
+		conf.set("fs.default.name","mdfs://192.168.1.10:9000");
 		fs.initialize(URI.create("mdfs://localhost:9000"),conf);
 
 		Path path=new Path("/dir3/");
@@ -239,9 +240,9 @@ class TestMDFSIO{
 		fs.listStatus(new Path("/dir3"));
 		System.out.println(" ");
 
-		//System.out.println("Going to delete File");
-		//fs.delete(path,false);
-		//System.out.println("delete Successful");
+		System.out.println("Going to delete File");
+		fs.delete(path,false);
+		System.out.println("delete Successful");
 		fs.listStatus(new Path("/"));
 		System.out.println(" ");
 		fs.listStatus(new Path("/dir3"));

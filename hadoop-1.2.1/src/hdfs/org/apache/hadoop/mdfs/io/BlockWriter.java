@@ -22,6 +22,7 @@ public class BlockWriter{
 
 
 	BlockWriter(String fileName,boolean append) throws FileNotFoundException,IOException{
+		System.out.println(" Creating BlockWriter for fileName "+fileName+" append "+append);
 		src=fileName;
 		File f = new File(fileName);
 

@@ -5,6 +5,7 @@ import java.net.URI;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 
 
 import org.apache.hadoop.fs.Path;
@@ -16,14 +17,18 @@ import org.apache.hadoop.util.Progressable;
 
 import org.apache.hadoop.mdfs.protocol.MDFSNameSystem;
 import org.apache.hadoop.mdfs.protocol.MDFSFileStatus;
+import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
 import org.apache.hadoop.mdfs.io.MDFSOutputStream;
 import org.apache.hadoop.mdfs.io.MDFSInputStream;
+
+import org.apache.hadoop.ipc.RPC;
+
 
 class MDFSClient {
 
 	private short defaultReplication;
 	private boolean clientRunning;
-	private MDFSNameSystem namesystem;
+	private MDFSProtocol namesystem;
 	private Configuration conf;
 
 	public MDFSClient(Configuration conf) {
@@ -36,7 +41,16 @@ class MDFSClient {
 	void initialize(URI uri, Configuration conf) throws IOException {
 
 		clientRunning=true;
-		this.namesystem = MDFSNameSystem.getInstance(conf);
+		//this.namesystem = MDFSNameSystem.getInstance(conf);
+		InetSocketAddress nodeAddr = MDFSNameSystem.getAddress(conf);
+		System.out.println(" Going to connect to MDFSNameSystem ");
+
+		this.namesystem =  (MDFSProtocol) 
+			RPC.waitForProxy(MDFSProtocol.class,
+					MDFSProtocol.versionID,
+					nodeAddr, 
+					conf);
+		System.out.println(" Connected to MDFSNameSystem ");
 		this.conf=conf;
 	}
 

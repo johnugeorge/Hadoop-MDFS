@@ -9,7 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.mdfs.protocol.MDFSNameSystem;
+import org.apache.hadoop.mdfs.protocol.MDFSProtocol;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 import org.apache.hadoop.mdfs.utils.MountFlags;
 import org.apache.hadoop.mdfs.protocol.BlockInfo;
@@ -25,7 +25,7 @@ public class MDFSOutputStream extends OutputStream {
 	final private long blockSize;
 	private short blockReplication; // replication factor of file
 	private Progressable progress;
-	private MDFSNameSystem namesystem;
+	private MDFSProtocol namesystem;
 	private LocatedBlock lastBlock;
 	private byte buffer[];
 	private int bufCount;
@@ -37,7 +37,7 @@ public class MDFSOutputStream extends OutputStream {
 
 
 
-	public MDFSOutputStream(MDFSNameSystem namesystem,Configuration conf,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
+	public MDFSOutputStream(MDFSProtocol namesystem,Configuration conf,String src,int flags,FsPermission permission,boolean createParent, short replication, long blockSize,Progressable progress,int bufferSize) throws IOException{
 		this.src = src;
 		this.blockSize = blockSize;
 		this.blockReplication = replication;
