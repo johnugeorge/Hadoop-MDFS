@@ -156,14 +156,16 @@ public class MDFSOutputStream extends OutputStream {
 	public synchronized void flush() throws IOException {
 		System.out.println("  flush ");
 		flushBuffer();
+		bufCount=0;
 
 	}
 
 	@Override
 	public synchronized void close() throws IOException {
 		System.out.println("  close ");
-		if(buffer.length != 0 ){
+		if(bufCount != 0 ){
 			flushBuffer();
+			bufCount=0;
 		}
 
 		if(lastBlock != null){
