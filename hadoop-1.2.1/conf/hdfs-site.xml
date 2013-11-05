@@ -7,4 +7,14 @@
 		<name>dfs.replication</name>
 		<value>1</value>
 	</property>
+	<property>
+		<name>mdfs.nameservice.rpc-address</name>
+		<value>mdfs://192.168.1.10:9000</value>
+		<description>
+			RPC address that handles all clients requests. If empty then we'll get the
+			value from fs.default.name.
+			The value of this property will take the form of hdfs://nn-host1:rpc-port.
+		</description>
+	</property>
+
 </configuration>
