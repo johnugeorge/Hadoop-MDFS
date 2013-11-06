@@ -374,6 +374,8 @@ class MapTask extends Task {
     FSDataInputStream inFile = fs.open(file);
     inFile.seek(offset);
     String className = Text.readString(inFile);
+    fs.listStatus(file);
+    LOG.info(" class Name "+className+" offset "+offset+" ClassName length "+className.length());
     Class<T> cls;
     try {
       cls = (Class<T>) conf.getClassByName(className);
