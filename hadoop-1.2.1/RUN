@@ -1,0 +1,1 @@
+java -classpath "./:../:../../lib/*" org.apache.hadoop.mdfs.test.TestDeleteAllFiles

@@ -69,6 +69,7 @@ public class MDFSDataService implements MDFSDataProtocol{
 		ll=new ListOfBlocksOperation();
 		commThread=new MDFSCommunicator(ll,newThreadforMDFSCommunicator);
 		System.out.println(" My Node Id "+ myNodeId);
+		System.out.println(" Java Library Paht "+System.getProperty("java.library.path")+ " LD_LIBRARY_PATH "+System.getProperty("LD_LIBRARY_PATH"));
 		
 		//TODO
 		int handlerCount =1;
