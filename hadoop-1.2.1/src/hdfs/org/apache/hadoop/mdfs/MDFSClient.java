@@ -24,6 +24,7 @@ import org.apache.hadoop.mdfs.protocol.BlockInfo;
 import org.apache.hadoop.mdfs.protocol.MDFSDataProtocol;
 import org.apache.hadoop.mdfs.io.MDFSOutputStream;
 import org.apache.hadoop.mdfs.io.MDFSInputStream;
+import org.apache.hadoop.mdfs.utils.DFSUtil;
 
 import org.apache.hadoop.ipc.RPC;
 import adhoc.etc.IOUtilities;
@@ -40,8 +41,14 @@ class MDFSClient {
 	public MDFSClient(Configuration conf) {
 	}
 
-	private String pathString(Path path) {
-		return path.toUri().getPath();
+	private String pathString(Path path) throws IOException{
+		String pathName= path.toUri().getPath();
+		if (!DFSUtil.isValidName(pathName)) {
+			throw new IOException("Invalid Path in MDFSClient  " + pathName);
+		}
+
+		return pathName;
+
 	}
 
 	void initialize(URI uri, Configuration conf) throws IOException {

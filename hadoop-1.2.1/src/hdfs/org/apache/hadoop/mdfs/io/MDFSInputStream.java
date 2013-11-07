@@ -74,6 +74,7 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public synchronized int available() throws IOException {
+		System.out.println(" InputStream ReadBuffer available");
 		if (closed) {
 			throw new IOException("Stream closed");
 		}
@@ -83,6 +84,7 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public long skip(long n) throws IOException {
+		System.out.println(" InputStream ReadBuffer skip "+n);
 		if ( n > 0 ) {
 			long curPos = getPos();
 			long fileLen = getFileLength();
@@ -117,6 +119,7 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public synchronized int read(byte buf[], int off, int len) throws IOException{
+		//System.out.println(" InputStream Read called off "+off+" len "+len+" buf len"+buf.length);
 		//System.out.println(" Read called with buf len "+buf.length+ "with offset "+off+" length "+len);
 		if(filePos >= getFileLength()){
 			return -1;
@@ -134,6 +137,8 @@ public class MDFSInputStream extends FSInputStream {
 				// got a EOS from reader though we expect more data on it.
 				throw new IOException("Unexpected EOS from the reader");
 			}
+			//for(byte b:buf)
+			//	 System.out.println(" ReadByte "+(char)b+" FilePos "+filePos);
 	   		return result;		
 
 		}
@@ -149,6 +154,7 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public synchronized void seek(long targetPos) throws IOException {
+		System.out.println(" InputStream seek "+targetPos);
 		if (targetPos > getFileLength()) {
 			throw new IOException("Cannot seek after EOF");
 		}
@@ -173,6 +179,7 @@ public class MDFSInputStream extends FSInputStream {
 
 	@Override
 	public void close() throws IOException {
+		System.out.println(" InputStream Closed");
 		if ( blockReader != null ) {
 			        blockReader.close();
 		}	
@@ -227,13 +234,13 @@ public class MDFSInputStream extends FSInputStream {
 		System.out.println(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
 		
 		try{
-			blockReader=new BlockReader(namesystem,src,blockId);
+			blockReader=new BlockReader(namesystem,src,blockId,offsetIntoBlock);
 		}
 		catch(FileNotFoundException e){
 
 			System.out.println(" Retrieving file from network as file is not present Locally");
 			datasystem.retrieveBlock(src,blockLoc,blockId);
-			blockReader=new BlockReader(namesystem,src,blockId);
+			blockReader=new BlockReader(namesystem,src,blockId,offsetIntoBlock);
 
 		}
 		return blockReader;	

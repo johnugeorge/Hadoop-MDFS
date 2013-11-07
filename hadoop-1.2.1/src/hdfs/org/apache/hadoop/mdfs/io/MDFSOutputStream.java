@@ -96,6 +96,7 @@ public class MDFSOutputStream extends OutputStream {
 
 	@Override
 	public synchronized void write(int b) throws IOException {
+		//System.out.println(" Write a single byte  : " + (char)b);
 		if(addNewBlock == true) {
 			if(writer != null){
 				if(lastBlock == null)
@@ -185,10 +186,10 @@ public class MDFSOutputStream extends OutputStream {
 	}
 
 
-	public long getPos() throws IOException {
-		System.out.println(" get pos ");
-		return 0;
-	}
+	//public long getPos() throws IOException {
+	//	System.out.println(" get pos ");
+	//	return 0;
+	//}
 
 
 	LocatedBlocks getBlockLocations(String src, long start, long length) throws IOException {

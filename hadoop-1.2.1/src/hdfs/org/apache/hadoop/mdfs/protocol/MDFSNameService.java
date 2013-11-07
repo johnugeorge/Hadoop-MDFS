@@ -127,7 +127,8 @@ public class MDFSNameService implements MDFSNameProtocol{
 
 		boolean status=true;
 		if(mdfsDir.isDir(src)){
-			throw new FileAlreadyExistsException(" Directory already exists "+src+" Hence not creating");
+			System.out.println(" Directory already exists "+src+" Hence not creating");
+			return status;
 		}
 		status = mdfsDir.mkdirs(src,permissions,inheritPermission);
 		return status;

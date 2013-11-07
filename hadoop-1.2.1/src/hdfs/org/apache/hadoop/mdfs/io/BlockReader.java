@@ -21,12 +21,12 @@ public class BlockReader{
 	String src;
 	MDFSNameProtocol namesystem;
 
-	BlockReader(MDFSNameProtocol namesystem,String actualFileName,long blockId) throws FileNotFoundException,IOException{
-		this(namesystem,blockId,actualFileName,getBlockLocationInFS(actualFileName,blockId));
+	BlockReader(MDFSNameProtocol namesystem,String actualFileName,long blockId,long startOffset) throws FileNotFoundException,IOException{
+		this(namesystem,blockId,actualFileName,startOffset,getBlockLocationInFS(actualFileName,blockId));
 	}
 
 
-	BlockReader(MDFSNameProtocol namesystem,long blockId,String actualFileName,String fileName) throws FileNotFoundException,IOException{
+	BlockReader(MDFSNameProtocol namesystem,long blockId,String actualFileName,long startOffset,String fileName) throws FileNotFoundException,IOException{
 		this.namesystem=namesystem;
 		src=fileName;
 		File f = new File(fileName);
@@ -70,6 +70,14 @@ public class BlockReader{
 
 
 		dataIn = new FileInputStream(fileName);
+		long toSkip = startOffset;
+		while (toSkip > 0) {
+			long skipped = dataIn.skip(toSkip);
+			if (skipped == 0) {
+				throw new IOException("Couldn't initialize input stream");
+			}
+			toSkip -= skipped;
+		}
 		System.out.println(" Creating BlockReader for fileName "+fileName);
 
 	}

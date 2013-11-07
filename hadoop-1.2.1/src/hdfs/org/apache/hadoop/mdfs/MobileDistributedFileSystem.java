@@ -318,10 +318,6 @@ public class MobileDistributedFileSystem extends FileSystem{
 		src = makeAbsolute(src);
 		dst = makeAbsolute(dst);
 
-		if (!DFSUtil.isValidName(dst.toString())) {
-			throw new IOException("Invalid Destination name for rename: " + dst);
-		}
-
 		//Verify if file is moved instead of rename
 		try {
 			MDFSFileStatus stat = mdfs.lstat(dst);
@@ -345,7 +341,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 	public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) throws IOException {
 		Path path = makeAbsolute(file.getPath());
 
-
+		LOG.info(" getFileBlockLocations: start "+ start+ " len "+len +" getPath"+ file.getPath() );
 		/* Get block size */
 		MDFSFileStatus stat = mdfs.lstat(path);
 		long blockSize = stat.getBlockSize();
@@ -356,7 +352,7 @@ public class MobileDistributedFileSystem extends FileSystem{
 			long offset = start + i * blockSize;
 			long blockStart = start + i * blockSize - (start % blockSize);
 			locations[i] = new BlockLocation(null, null, blockStart, blockSize);
-			LOG.debug("getFileBlockLocations: location[" + i + "]: " + locations[i]);
+			LOG.info("getFileBlockLocations: location[" + i + "]: " + locations[i]+ " blockStart "+blockStart +" offset "+offset+" blocksize "+blockSize);
 		}
 
 		return locations;
