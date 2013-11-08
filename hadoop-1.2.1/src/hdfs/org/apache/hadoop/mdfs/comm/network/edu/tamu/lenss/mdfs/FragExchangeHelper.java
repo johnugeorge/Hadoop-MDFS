@@ -93,6 +93,7 @@ public class FragExchangeHelper {
 			}
 			
 			tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + fDirName + "/" + header.getFileName() );
+			System.out.println("  Rcv FileFragment Loc "+(Constants.DIR_ROOT + "/" + fDirName + "/" +  header.getFileName()));
 			FileOutputStream fos = new FileOutputStream(tmp0);
 			int readLen=0;
 			DataInputStream in = data.getDataInputStream();
@@ -125,8 +126,9 @@ public class FragExchangeHelper {
 	private void sendFileFragment(final TCPReceiverData data, ObjectInputStream ois, FileFragPacket header){
 		byte [] mybytearray  = new byte [Constants.TCP_COMM_BUFFER_SIZE];
 		String fDirName = MDFSFileInfo.getDirName(header.getFileName(), header.getCreatedTime());
-		String fName = header.getFileName() + "__frag__" + header.getFragIndex();
+		String fName = MDFSFileInfo.getShortFileName(header.getFileName()) + "__frag__" + header.getFragIndex();
 		File fileFrag = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + fDirName + "/" + fName );
+		System.out.println("  Send FileFragment Loc "+(Constants.DIR_ROOT + "/" + fDirName + "/" + fName));
 		if(!fileFrag.exists() || fileFrag.length() < 1){	// Handle the situation that 0 byte file got stored...
 			Logger.e(TAG, "File Fragment does not exist");
 			fileFrag.delete();

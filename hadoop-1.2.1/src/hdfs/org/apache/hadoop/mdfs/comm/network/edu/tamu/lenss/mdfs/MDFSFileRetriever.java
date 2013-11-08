@@ -243,6 +243,8 @@ public class MDFSFileRetriever {
 		private int hopCount1, hopCount2;
 		@Override
 		public int compare(Integer nodeId1, Integer nodeId2) {
+			//TODO commenting out the code for now sonce we don't have routing info. REVISIT
+			/*
 			try {
 				hopCount1 = manager.getForwardRouteEntry(nodeId1).getHopCount();
 				hopCount2 = manager.getForwardRouteEntry(nodeId2).getHopCount();
@@ -258,6 +260,7 @@ public class MDFSFileRetriever {
 			} catch (RouteNotValidException e) {
 				e.printStackTrace();
 			}
+			*/
 			return 0;
 		}
 	}
