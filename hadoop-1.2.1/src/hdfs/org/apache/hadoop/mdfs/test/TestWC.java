@@ -34,10 +34,10 @@ class TestWC{
 		//OutputStream appendout=fs.append(path,4192,null);//append
 		BufferedWriter br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
 		int i=0;
-		while(i<10000){
+		//while(i<10000){
 		br.write("Hello World");
-		br.write(" done ");
-		i++;}
+		br.write(" done iHello Hello World world Hello");
+		//i++;}
 		br.close();
 		fs.listStatus(new Path("/"));
 		System.out.println(" ");
