@@ -43,7 +43,7 @@ public class FileRequestHandler {
 			if(storedKeyIdx >= 0){
 				// Retrieve the key fragment
 				String dirName = MDFSFileInfo.getDirName(fileReq.getFileName(), fileReq.getFileCreatedTime());
-				String fName = fileReq.getFileName() + "__key__" + storedKeyIdx;
+				String fName = MDFSFileInfo.getShortFileName(fileReq.getFileName()) + "__key__" + storedKeyIdx;
 				File f = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + dirName + "/" + fName);
 				KeyShareInfo key = IOUtilities.readObjectFromFile(f, KeyShareInfo.class);
 				if(key != null)
@@ -68,7 +68,7 @@ public class FileRequestHandler {
 				if(storedKeyIdx >= 0){
 					// Retrieve the key fragment
 					String dirName = MDFSFileInfo.getDirName(fileReq.getFileName(), fileReq.getFileCreatedTime());
-					String fName = fileReq.getFileName() + "__key__" + storedKeyIdx;
+					String fName = MDFSFileInfo.getShortFileName(fileReq.getFileName()) + "__key__" + storedKeyIdx;
 					File f = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + dirName + "/" + fName);
 					KeyShareInfo key = IOUtilities.readObjectFromFile(f, KeyShareInfo.class);
 					if(key != null)

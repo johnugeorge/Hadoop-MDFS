@@ -10,48 +10,47 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import java.io.*;
 import org.apache.hadoop.io.DataInputBuffer;
 
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableUtils;
+
+
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.conf.Configuration;
 
-class TestDeleteAllFiles{
+
+
+class TestReadFile{
 	public static void main(String[] args)  throws Exception
 	{
-
 		MobileDistributedFileSystem fs = new MobileDistributedFileSystem();
 		Configuration conf = new Configuration();
 		conf.set("fs.default.name","mdfs://192.168.1.10:9000");
 		fs.initialize(URI.create("mdfs://localhost:9000"),conf);
+		try{
+
+			System.out.println(" Reading complete file  ");
+			FSDataInputStream in=fs.open(new Path("/dir3/FileTest.txt"));
+			BufferedReader rd = new BufferedReader( new InputStreamReader( in) );
+
+			byte[] b1 = new byte[20000];
+			int a=0;
+			int count=0;
+			while((a=in.read()) !=-1){
+				count++;
+				//int bytesRead = in.read(b1, 0, 10);
+				//System.out.println(" Read String is "+(char)a);
+			}
+			System.out.println(" Reading complete file   done");
 
 
-		System.out.println(" Listing Tree");
-		fs.listStatus(new Path("/"));
-		System.out.println(" ");
-		System.out.println("Going to delete File");
-		fs.delete(new Path("/user"),true);
-		fs.delete(new Path("/home"),true);
-		fs.delete(new Path("/dir3"),true);
-		System.out.println(" ");
-		System.out.println("delete Successful");
-		fs.listStatus(new Path("/"));
-		System.out.println(" ");
 
+		}finally{
+		}
 
 
 
 
 	}
 
-	static void printFileStatus (FileStatus fileStatus)throws IOException,UnsupportedEncodingException
-	{
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream(64);
-		DataInputBuffer in = new DataInputBuffer();
-
-		buffer.reset();
-		DataOutputStream out = new DataOutputStream(buffer);
-		fileStatus.write(out);
-
-		in.reset(buffer.toByteArray(), 0, buffer.size());
-
-	}
 }

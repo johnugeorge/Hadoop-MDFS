@@ -27,6 +27,8 @@ class TestListing{
 		System.out.println(" Listing Tree");
 		fs.listStatus(new Path("/"));
 		System.out.println(" ");
+		fs.listStatus(new Path("/dir1"));
+		System.out.println(" ");
 		fs.listStatus(new Path("/user"));
 		System.out.println(" ");
 		fs.listStatus(new Path("/user/hduser"));

@@ -109,7 +109,7 @@ class TestWritable{
 			System.out.println(val1+" "+val2+" "+lval1+" "+name+" "+val3+" "+lval2+" "+ test+" "+val4 +" "+name1+" "+val5+" " +name2);
 			inFile.close();
 		}finally{
-			fs.delete(new Path("/dir3/"),true);
+			//fs.delete(new Path("/dir3/"),true);
 		}
 
 
