@@ -140,7 +140,7 @@ public class MDFSDirectory implements Serializable {
 				System.exit(0);
 			}
 		}
-		MDFSFileInfo tmp= fileMap.put(file.getCreatedTime(), file);
+		fileMap.put(file.getCreatedTime(), file);
 		nameToKeyMap.put(file.getFileName(), file.getCreatedTime());
 	}
 	

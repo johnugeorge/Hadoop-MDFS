@@ -27,25 +27,33 @@ class TestReadFile{
 		Configuration conf = new Configuration();
 		conf.set("fs.default.name","mdfs://192.168.1.10:9000");
 		fs.initialize(URI.create("mdfs://localhost:9000"),conf);
-		try{
+		while(true){
+			try{
 
-			System.out.println(" Reading complete file  ");
-			FSDataInputStream in=fs.open(new Path("/dir3/FileTest.txt"));
-			BufferedReader rd = new BufferedReader( new InputStreamReader( in) );
+				System.out.println(" Reading complete file  ");
+				Console console = System.console();
+				if (console == null) {
+					System.out.println("Unable to fetch console");
+					return;
+				}
+				String line = console.readLine();
+				FSDataInputStream in=fs.open(new Path(line));
+				BufferedReader rd = new BufferedReader( new InputStreamReader( in) );
 
-			byte[] b1 = new byte[20000];
-			int a=0;
-			int count=0;
-			while((a=in.read()) !=-1){
-				count++;
-				//int bytesRead = in.read(b1, 0, 10);
-				//System.out.println(" Read String is "+(char)a);
+				byte[] b1 = new byte[20000];
+				int a=0;
+				int count=0;
+				while((a=in.read()) !=-1){
+					count++;
+					//int bytesRead = in.read(b1, 0, 10);
+					//System.out.println(" Read String is "+(char)a);
+				}
+				System.out.println(" Reading complete file   done");
+
+
+
+			}finally{
 			}
-			System.out.println(" Reading complete file   done");
-
-
-
-		}finally{
 		}
 
 

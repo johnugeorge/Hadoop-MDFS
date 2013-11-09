@@ -17,6 +17,8 @@ public interface MDFSDataProtocol extends VersionedProtocol {
 
 	public void retrieveBlock(String src,String actualBlockLoc,long blockId) throws IOException;
 
+	public boolean rename(String src,String dest,LocatedBlocks blocks);
+
 
 }
 

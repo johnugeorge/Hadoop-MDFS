@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ArrayList;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -22,6 +23,8 @@ import org.apache.hadoop.mdfs.protocol.MDFSFileStatus;
 import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol;
 import org.apache.hadoop.mdfs.protocol.BlockInfo;
 import org.apache.hadoop.mdfs.protocol.MDFSDataProtocol;
+import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
+
 import org.apache.hadoop.mdfs.io.MDFSOutputStream;
 import org.apache.hadoop.mdfs.io.MDFSInputStream;
 import org.apache.hadoop.mdfs.utils.DFSUtil;
@@ -116,7 +119,9 @@ class MDFSClient {
 
 	void rename(Path src, Path dst) throws IOException {
 		System.out.println(" src "+ pathString(src) +" dst " +pathString(dst) );
+		LocatedBlocks blocks = namesystem.getBlockLocations(pathString(src), 0, Long.MAX_VALUE);
 		namesystem.rename(pathString(src),pathString(dst));
+		datasystem.rename(pathString(src),pathString(dst),blocks);
 	}
 
 	String[] listdir(Path path) throws IOException {

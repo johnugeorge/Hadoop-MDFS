@@ -29,6 +29,7 @@ import org.apache.hadoop.net.NetUtils;
 
 import edu.tamu.lenss.mdfs.comm.ServiceHelper;
 import edu.tamu.lenss.mdfs.models.DeleteFile;
+import edu.tamu.lenss.mdfs.models.RenameFile;
 import org.apache.hadoop.mdfs.io.BlockReader;
 
 import adhoc.etc.IOUtilities;
@@ -150,6 +151,21 @@ public class MDFSDataService implements MDFSDataProtocol{
 			if(!ret)
 				throw new IOException(" Block Retrieval Failed");
 		}
+	}
+
+
+	public boolean rename(String src,String dest,LocatedBlocks blocks){
+		RenameFile renameFile = new RenameFile();
+
+		List<Long> blockIds= new ArrayList<Long>();
+		for(LocatedBlock b:blocks.getLocatedBlocks()){
+			blockIds.add(b.getBlock().getBlockId());
+		}
+
+		renameFile.setFile(src,dest,blockIds);
+		serviceHelper.renameFiles(renameFile);
+		return true;
+
 	}
 
 

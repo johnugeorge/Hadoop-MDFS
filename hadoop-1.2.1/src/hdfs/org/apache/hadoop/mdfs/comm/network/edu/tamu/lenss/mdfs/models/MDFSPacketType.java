@@ -11,4 +11,5 @@ public final class MDFSPacketType {
 	public static final int JOB_SCHEDULE = 8;
 	public static final int JOB_COMPLETE = 9;
 	public static final int JOB_RESULT = 10;
+	public static final int RENAME_FILE = 11;
 }

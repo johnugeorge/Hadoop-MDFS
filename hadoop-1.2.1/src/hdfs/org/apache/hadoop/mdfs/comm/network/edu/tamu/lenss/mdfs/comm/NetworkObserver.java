@@ -21,6 +21,7 @@ import edu.tamu.lenss.mdfs.ScheduledTask;
 import edu.tamu.lenss.mdfs.comm.FileReplyHandler.FileREPListener;
 import edu.tamu.lenss.mdfs.comm.TopologyHandler.TopologyListener;
 import edu.tamu.lenss.mdfs.models.DeleteFile;
+import edu.tamu.lenss.mdfs.models.RenameFile;
 import edu.tamu.lenss.mdfs.models.FileREP;
 import edu.tamu.lenss.mdfs.models.FileREQ;
 import edu.tamu.lenss.mdfs.models.JobComplete;
@@ -53,6 +54,7 @@ public class NetworkObserver implements Observer {
 	private FileReplyHandler fileRepHandler = new FileReplyHandler();
 	//private TaskProcessingHandler taskProcessingHandler = new TaskProcessingHandler();
 	private DeleteFileHandler deleteFileHandler = new DeleteFileHandler();
+	private RenameFileHandler renameFileHandler = new RenameFileHandler();
 	private ScheduledTask scheduledTask = new ScheduledTask();
 	//private FailureEstimator failureEstimator;
 	private ExecutorService pool;
@@ -119,7 +121,13 @@ public class NetworkObserver implements Observer {
 		deleteFileHandler.sendFileDeletionPacket(files);
 		deleteFileHandler.processPacket(files);	// Also delete my file locally
 	}
-	
+
+	protected void renameFiles(RenameFile files){
+		renameFileHandler.sendFileRenamePacket(files);
+		renameFileHandler.processPacket(files);	// Also delete my file locally
+	}
+
+
 	protected void sendFileUpdate(NewFileUpdate update){
 		myNode.sendAODVDataContainer(update);
 	}
@@ -269,6 +277,16 @@ public class NetworkObserver implements Observer {
 						}
 					});
 					showToast("Receive DeleteFile from " + deleteFile.getSource());
+					break;
+				case MDFSPacketType.RENAME_FILE:
+					final RenameFile renameFile = (RenameFile)msg.getContainedData();
+					pool.execute(new Runnable(){
+						@Override
+						public void run() {
+							renameFileHandler.processPacket(renameFile);
+						}
+					});
+					showToast("Receive RenameFile from " + renameFile.getSource());
 					break;
 				case MDFSPacketType.JOB_SCHEDULE:
 					final TaskSchedule schedule = (TaskSchedule)msg.getContainedData();

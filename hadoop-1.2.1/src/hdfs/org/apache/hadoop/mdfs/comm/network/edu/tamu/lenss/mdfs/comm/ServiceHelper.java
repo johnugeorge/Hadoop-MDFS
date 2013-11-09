@@ -6,6 +6,7 @@ import edu.tamu.lenss.mdfs.MDFSDirectory;
 import edu.tamu.lenss.mdfs.comm.FileReplyHandler.FileREPListener;
 import edu.tamu.lenss.mdfs.comm.TopologyHandler.TopologyListener;
 import edu.tamu.lenss.mdfs.models.DeleteFile;
+import edu.tamu.lenss.mdfs.models.RenameFile;
 import edu.tamu.lenss.mdfs.models.FileREQ;
 import edu.tamu.lenss.mdfs.models.NewFileUpdate;
 import edu.tamu.lenss.mdfs.models.TaskResult;
@@ -118,6 +119,10 @@ public class ServiceHelper {
 	
 	public void deleteFiles(DeleteFile files){
 		service.deleteFiles(files);
+	}
+
+	public void renameFiles(RenameFile files){
+		service.renameFiles(files);
 	}
 	
 	public void sendFileUpdate(NewFileUpdate update){
