@@ -79,6 +79,13 @@ public class RenameFileHandler {
 
 
 						MDFSFileInfo fileInfo = new MDFSFileInfo(destFileName, destFileId ,true);
+						MDFSFileInfo prevFileInfo=directory.getFileInfo(srcFileId);
+						fileInfo.setCreator(prevFileInfo.getCreator());
+						fileInfo.setFragmentsParms(prevFileInfo.getN1(),prevFileInfo.getK1(),prevFileInfo.getN2(),prevFileInfo.getK2());
+						fileInfo.setFileLength(prevFileInfo.getFileLength());
+						fileInfo.setKeyStorage(prevFileInfo.getKeyStorage());
+						fileInfo.setFileStorage(prevFileInfo.getFileStorage());
+
 						directory.removeFile(srcFileId);
 						directory.addFile(fileInfo);
 

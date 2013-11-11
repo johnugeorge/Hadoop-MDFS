@@ -205,6 +205,7 @@ public class MDFSNameService implements MDFSNameProtocol{
 	}
 
 	public boolean rename(String src,String dest) throws IOException {
+		System.out.println(" Rename called "+src+" Dest "+dest);
 		return mdfsDir.rename(src,dest);
 	}
 

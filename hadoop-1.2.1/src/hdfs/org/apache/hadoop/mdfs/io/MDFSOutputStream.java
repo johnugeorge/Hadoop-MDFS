@@ -176,6 +176,7 @@ public class MDFSOutputStream extends OutputStream {
 			namesystem.notifyBlockAdded(src,blockId,blockOffset);
 
 			writer.close();
+			lastBlock =null;
 		}
 
 	}

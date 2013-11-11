@@ -127,6 +127,7 @@ public class MDFSDataService implements MDFSDataProtocol{
 	}
 
 	public void notifyBlockAdded(String src,String actualBlockLoc,long blockId,long bufCount) throws IOException{
+		System.out.println("MDFSDataService: Adding a new file "+ actualBlockLoc);
 		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"CREATE");		
 		if(newThreadforMDFSCommunicator){
 			//ll.addElem(blockOps);
@@ -137,10 +138,12 @@ public class MDFSDataService implements MDFSDataProtocol{
 			if(!ret)
 				throw new IOException(" Block Creation Failed");
 		}
+		System.out.println("MDFSDataService: New file added"+ actualBlockLoc);
 		//mdfsDir.notifyBlockAdded(src,blockId,bufCount);
 	}
 
 	public void retrieveBlock(String src,String actualBlockLoc,long blockId) throws IOException{
+		System.out.println("MDFSDataService: Retrieving  a  file "+ actualBlockLoc);
 		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"RETRIEVE");	
 		if(newThreadforMDFSCommunicator){
 			//ll.addElem(blockOps);
@@ -151,6 +154,7 @@ public class MDFSDataService implements MDFSDataProtocol{
 			if(!ret)
 				throw new IOException(" Block Retrieval Failed");
 		}
+		System.out.println("MDFSDataService: Retrieving file done "+ actualBlockLoc);
 	}
 
 

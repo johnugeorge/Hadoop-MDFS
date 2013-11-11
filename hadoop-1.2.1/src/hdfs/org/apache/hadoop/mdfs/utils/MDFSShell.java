@@ -102,14 +102,20 @@ class MDFSShell{
 				FSDataInputStream in=fs.open(new Path(args[1]));
 				BufferedReader rd = new BufferedReader( new InputStreamReader( in) );
 
-				byte[] b1 = new byte[20000];
+
+				StringBuilder sb = new StringBuilder();
+				byte[] b1 = new byte[4096];
 				String str="";
 				int a=0;
 				int count=0;
-				while((a=in.read()) !=-1){
-					count++;
-					str=str+(char)a;
+				System.out.println(" Read start");
+				while((a=in.read(b1,0,4096)) !=-1){
+					count+=a;
+					//if(toPrint)
+					//	sb.append((char)a);
+					str=str+new String(b1);
 				}
+				System.out.println(" Read end");
 				if(toPrint)
 					System.out.println(" Read String is "+str);
 				System.out.println(" Reading complete file done. Total "+ count+ " chars");

@@ -210,6 +210,7 @@ public class MDFSFileRetriever {
 		listener.statusUpdate("Downloading fragments");
 		// If I have all the fragments already
 		if(locFragCounter.get() >= fileInfo.getK2()){
+			Logger.v(TAG," Decoding File without downloading File Fragaments "+locFragCounter.get()+" k2 val"+fileInfo.getK2());
 			decodeFile();
 			return;
 		}
@@ -293,6 +294,8 @@ public class MDFSFileRetriever {
 			listener.onError("Insufficient fragments. " + s + " Please try again later");
 			return;
 		}
+		String s = keyShares.size() + " keys " + fileFragments.size() + " file fragments "+" k1 "+ fileInfo.getK1()+" k2 "+fileInfo.getK2();
+		System.out.println(" MDFSFileRetriever "+ s);
 		listener.statusUpdate("Decoding fragments");
 		fileRetLog.decryStart = System.currentTimeMillis();
 		MDFSDecoder decoder = new MDFSDecoder(keyShares, fileFragments);
