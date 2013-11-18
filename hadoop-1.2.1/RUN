@@ -1,6 +1,10 @@
 java -classpath "./:../:../../lib/*" org.apache.hadoop.mdfs.test.TestDeleteAllFiles
 
 
+-createFromLocalFile /home/johnugeorge/TestWC /dir5/TestWC
+
+bin/hadoop jar hadoop-*examples*.jar wordcount /dir5/ /dir1
+
 bin/hadoop jar hadoop-examples-1.2.1.jar teragen 100000 /user/hduser/terasort-input
 
 bin/hadoop jar hadoop-*examples*.jar terasort /user/hduser/terasort-input /user/hduser/terasort-output
