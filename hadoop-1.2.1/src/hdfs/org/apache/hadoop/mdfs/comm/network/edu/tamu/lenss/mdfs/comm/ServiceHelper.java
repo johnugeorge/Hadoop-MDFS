@@ -10,6 +10,17 @@ import edu.tamu.lenss.mdfs.models.RenameFile;
 import edu.tamu.lenss.mdfs.models.FileREQ;
 import edu.tamu.lenss.mdfs.models.NewFileUpdate;
 import edu.tamu.lenss.mdfs.models.TaskResult;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
+import org.apache.hadoop.mdfs.protocol.MDFSNameService;
+import org.apache.hadoop.ipc.RPC;
+import org.apache.hadoop.ipc.RPC.Server;
+
+import java.net.InetSocketAddress;
+import java.io.IOException;
+
+
 //import edu.tamu.lenss.mdfs.activities.JobProcessing.JobManagerListener;
 //import android.content.ComponentName;
 //import android.content.ServiceConnection;
@@ -21,18 +32,56 @@ public class ServiceHelper {
 	/* Global Shared Instances */
 	private static ServiceHelper instance = null;
 	private static NetworkObserver service;
-	private static MDFSDirectory directory;
+	private static MDFSDirectoryProtocol directory;
 	//private static Context context;
 	private static volatile boolean connected = false;
-	
+	private static Configuration conf = null;
+	private static boolean standAloneConf = true;
+
+	static{
+		Configuration.addDefaultResource("hdfs-default.xml");
+		Configuration.addDefaultResource("hdfs-site.xml");
+	}
+
+	public static void setConf(Configuration userConf){
+		conf=userConf;
+	}
+
+	public static void setStandAloneConf(boolean val){
+		standAloneConf=val;
+	}
+
 	private ServiceHelper() {
 		/*cont.bindService(new Intent(cont, NetworkObserver.class),
-				mConnection, Context.BIND_AUTO_CREATE);*/
+		  mConnection, Context.BIND_AUTO_CREATE);*/
 		Logger.v(TAG, "Start to bind service");
 		service = new NetworkObserver();
 		//context = cont;
-		directory = MDFSDirectory.readDirectory();
-		directory.syncLocal();
+	        Logger.v(TAG," StandAlone Conf "+standAloneConf);	
+		if(standAloneConf == false){
+			if (conf == null)
+				conf = new Configuration();
+			InetSocketAddress nodeAddr = MDFSNameService.getDirectoryServiceAddress(conf);
+			Logger.v(TAG, " Going to connect to MDFSDirectoryService ");
+			try{
+				this.directory =  (MDFSDirectoryProtocol)
+					RPC.waitForProxy(MDFSDirectoryProtocol.class,
+							MDFSDirectoryProtocol.versionID,
+							nodeAddr,
+							conf);
+			}
+			catch(IOException e)
+			{
+				Logger.v(TAG, " IOExcpetion happened when connecting to directory service");
+			}
+			Logger.v(TAG," Connected to MDFSDirectoryService ");
+		}
+		else
+		{
+
+			directory = MDFSDirectory.readDirectory();
+			directory.syncLocal(getMyNode().getNodeId());
+		}
 	}
 	
 	public static synchronized ServiceHelper getInstance() {
@@ -67,11 +116,11 @@ public class ServiceHelper {
 		return service.getMyNode().getDatalogger();
 	}*/
 	
-	public MDFSDirectory getDirectory() {
+	public MDFSDirectoryProtocol getDirectory() {
 		return directory;
 	}
 
-	public static void setDirectory(MDFSDirectory directory) {
+	public static void setDirectory(MDFSDirectoryProtocol directory) {
 		ServiceHelper.directory = directory;
 	}
 
@@ -82,7 +131,9 @@ public class ServiceHelper {
 			//connected = false;
 			
 			service.cancel();
-			directory.saveDirectory();
+			if(standAloneConf == true){
+				directory.saveDirectory();
+			}
 			//service.getMyNode().getDatalogger().closeAllFiles();
 			instance = null;
 		}
@@ -141,7 +192,7 @@ public class ServiceHelper {
 		service.broadcastJobComplete();
 	}
 	
-	public void broadcastMyDirectory(){
+	/*public void broadcastMyDirectory(){
 		service.broadcastMyDirectory();
-	}
+	}*/
 }

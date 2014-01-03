@@ -1,10 +1,12 @@
 package org.apache.hadoop.mdfs.protocol;
 
+import java.util.Set;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
+
 import java.net.InetSocketAddress;
 import java.net.URI;
 
@@ -12,6 +14,7 @@ import java.net.URI;
 
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.SetWritable;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileSystem;
@@ -28,7 +31,11 @@ import org.apache.hadoop.net.NetUtils;
 
 
 
-import edu.tamu.lenss.mdfs.comm.ServiceHelper;
+
+import edu.tamu.lenss.mdfs.MDFSDirectory;
+import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+
+
 import edu.tamu.lenss.mdfs.models.DeleteFile;
 import org.apache.hadoop.mdfs.io.BlockReader;
 
@@ -36,17 +43,20 @@ import adhoc.etc.MyTextUtils;
 import adhoc.etc.IOUtilities;
 
 
-public class MDFSNameService implements MDFSNameProtocol{
+public class MDFSNameService implements MDFSNameProtocol,MDFSDirectoryProtocol{
 
 	private static MDFSNameService instance = null;
-	private MDFSDirectory mdfsDir;
+	private org.apache.hadoop.mdfs.protocol.MDFSDirectory mdfsDir;
+	private edu.tamu.lenss.mdfs.MDFSDirectory commDir;
 
 	private int myNodeId;
 	private ListOfBlocksOperation ll;
 	private MDFSCommunicator commThread;
 	private boolean newThreadforMDFSCommunicator = false;//whether to start a new Thread for MDFS communicator
 	private Server server;
+	private Server directoryServer;
 	private InetSocketAddress serverAddress = null;
+	private InetSocketAddress directoryServerAddress = null;
 
 	public static final int DEFAULT_PORT = 8020;
 
@@ -64,7 +74,8 @@ public class MDFSNameService implements MDFSNameProtocol{
 	MDFSNameService(Configuration conf){
 		if (conf == null)
 			conf = new Configuration();
-		mdfsDir= new MDFSDirectory(this,conf);
+		mdfsDir= new org.apache.hadoop.mdfs.protocol.MDFSDirectory(this,conf);
+		commDir =new edu.tamu.lenss.mdfs.MDFSDirectory();
 		String localIp = IOUtilities.getLocalIpAddress();
 		if(!MyTextUtils.isEmpty(localIp)){
 			this.myNodeId = IOUtilities.parseNodeNumber(localIp);
@@ -89,9 +100,22 @@ public class MDFSNameService implements MDFSNameProtocol{
 		}
 		catch(IOException e){
 
-			System.out.println("MDFS protocol not started due to IOException");
+			System.out.println("MDFS Name Service protocol not started due to IOException");
 		}
 
+		InetSocketAddress socDirectoryAddr = MDFSNameService.getDirectoryServiceAddress(conf);
+		try{
+			this.directoryServer = RPC.getServer(this, socDirectoryAddr.getHostName(),
+					socDirectoryAddr.getPort(), handlerCount, false, conf, null);
+			this.directoryServer.start();  //start RPC server   
+			this.directoryServerAddress = this.directoryServer.getListenerAddress(); 
+			FileSystem.setDefaultUri(conf, getUri(directoryServerAddress));
+			System.out.println("MDFS DirectoryService up at: " + this.directoryServerAddress);
+		}
+		catch(IOException e){
+
+			System.out.println("MDFS Directory Service protocol not started due to IOException");
+		}
 
 
 	}
@@ -100,6 +124,15 @@ public class MDFSNameService implements MDFSNameProtocol{
 	public static InetSocketAddress getAddress(Configuration conf) {
 		//TODO
 		String addr = conf.get("mdfs.nameservice.rpc-address");
+		if (addr == null || addr.isEmpty()) {
+			return getAddress(FileSystem.getDefaultUri(conf).toString());
+		}
+		return getAddress(addr);
+	}
+
+	public static InetSocketAddress getDirectoryServiceAddress(Configuration conf) {
+		//TODO
+		String addr = conf.get("mdfs.directoryservice.rpc-address");
 		if (addr == null || addr.isEmpty()) {
 			return getAddress(FileSystem.getDefaultUri(conf).toString());
 		}
@@ -238,6 +271,150 @@ public class MDFSNameService implements MDFSNameProtocol{
 			this.server.join();
 		} catch (InterruptedException ie) {
 		}
+	}
+
+
+	//Directory Service Functions
+
+	public MDFSFileInfo getFileInfo(long fileId){
+		return commDir.getFileInfo(fileId);
+	}
+
+	public MDFSFileInfo getFileInfo(String fName){
+		return commDir.getFileInfo(fName);
+	}
+
+	public long getFileIdByName(String name){
+		return commDir.getFileIdByName(name);
+	}
+
+	public int getStoredKeyIndex(long fileId,int creator){
+		return commDir.getStoredKeyIndex(fileId,creator);
+	}      
+
+	public int getStoredKeyIndex(String fName,int creator){
+		return commDir.getStoredKeyIndex(fName,creator);
+	}
+
+	public SetWritable getStoredFileIndex(long fileId,int creator){
+		return commDir.getStoredFileIndex(fileId,creator);
+	}
+
+	public SetWritable getStoredFileIndex(String fName,int creator){
+		return  commDir.getStoredFileIndex(fName,creator);
+	}
+
+	public void addFile(MDFSFileInfo file){
+		commDir.addFile(file);
+	}
+
+	public void removeFile(long fileId){
+		commDir.removeFile(fileId);
+	}
+
+	public void addKeyFragment(long fileId, int keyIndex,int creator){
+		commDir.addKeyFragment(fileId,keyIndex,creator);
+	}
+
+	public void addKeyFragment(String fileName, int keyIndex,int creator){
+		commDir.addKeyFragment(fileName,keyIndex,creator);
+	}
+
+	public void replaceKeyFragment(long src,long dst){
+		commDir.replaceKeyFragment(src,dst);
+	}
+	
+	public void replaceFileFragment(long src,long dst){
+		commDir.replaceFileFragment(src,dst);
+	}
+
+	public void removeKeyFragment(long fileId,int creator){
+		commDir.removeKeyFragment(fileId,creator);
+	}
+
+	public void removeKeyFragment(String fileName,int creator){
+		commDir.removeKeyFragment(fileName,creator);
+	}
+
+	public void addFileFragment(long fileId, int fileIndex,int creator){
+		commDir.addFileFragment(fileId,fileIndex,creator);
+	}
+
+	public void addFileFragment(String fileName, int fileIndex,int creator){
+		commDir.addFileFragment(fileName,fileIndex,creator);
+	}
+
+	public void addFileFragment(long fileId, SetWritable fileIndex,int creator){
+		commDir.addFileFragment(fileId,fileIndex,creator);
+	}
+
+	public void addFileFragment(String fileName, SetWritable fileIndex,int creator){
+		commDir.addFileFragment(fileName,fileIndex,creator);
+	}
+
+
+	public void removeFileFragment(long fileId,int creator){
+		commDir.removeFileFragment(fileId,creator);
+	}
+
+	public void removeFileFragment(String fileName,int creator){
+		commDir.removeFileFragment(fileName,creator);
+	}
+
+	public void addEncryptedFile(long fileId){
+		commDir.addEncryptedFile(fileId);
+	}
+
+	public void addEncryptedFile(String fileName){
+		commDir.addEncryptedFile(fileName);
+	}
+
+	public void removeEncryptedFile(long fileId){
+		commDir.removeEncryptedFile(fileId);
+	}
+
+	public void removeEncryptedFile(String fileName){
+		commDir.removeEncryptedFile(fileName);
+	}       
+
+	public void addDecryptedFile(long fileId){
+		commDir.addDecryptedFile(fileId);
+	}
+
+	public void addDecryptedFile(String fileName){
+		commDir.addDecryptedFile(fileName);
+	}
+
+
+	public void removeDecryptedFile(long fileId){
+		commDir.removeDecryptedFile(fileId);
+	}
+
+	public void removeDecryptedFile(String fileName){
+		commDir.removeDecryptedFile(fileName);
+	}
+
+	public boolean isEncryptedFileCached(long fileId){
+		return commDir.isEncryptedFileCached(fileId);
+	}
+	public boolean isDecryptedFileCached(long fileId){
+		return commDir.isDecryptedFileCached(fileId);
+	}
+
+	public void clearAll() {
+		commDir.clearAll();
+	}
+
+	public boolean saveDirectory(){
+		return commDir.saveDirectory();
+	}
+
+	public void syncLocal(int nodeId){
+		commDir.syncLocal(nodeId);
+	}
+
+	public MDFSInfoList getFileList(){
+		return commDir.getFileList();
 	}
 
 }

@@ -65,6 +65,8 @@ public class MDFSDataService implements MDFSDataProtocol{
 	MDFSDataService(Configuration conf){
 		if (conf == null)
 			conf = new Configuration();
+		ServiceHelper.setConf(conf);
+		ServiceHelper.setStandAloneConf(false);
 		this.serviceHelper = ServiceHelper.getInstance();
 		this.myNodeId = serviceHelper.getMyNode().getNodeId();
 		ll=new ListOfBlocksOperation();

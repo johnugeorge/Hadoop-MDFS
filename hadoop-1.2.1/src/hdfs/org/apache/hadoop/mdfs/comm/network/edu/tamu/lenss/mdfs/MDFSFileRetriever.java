@@ -41,6 +41,8 @@ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 import edu.tamu.lenss.mdfs.utils.JCountDownTimer;
 
+import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
+
 
 public class MDFSFileRetriever {
 	private static final String TAG = MDFSFileRetriever.class.getSimpleName();
@@ -113,8 +115,8 @@ public class MDFSFileRetriever {
 			fileRetLog.discEnd = System.currentTimeMillis();
 			
 			// Cache the key fragment and retrieve the file fragments
-			MDFSDirectory directory = serviceHelper.getDirectory();
-			Set<Integer> myfiles = directory.getStoredFileIndex(fileId);	// Get the current file fragments I have
+			MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
+			Set<Integer> myfiles = directory.getStoredFileIndex(fileId,serviceHelper.getMyNode().getNodeId()).getItemSet();	// Get the current file fragments I have
 			if(myfiles == null)
 				myfiles = new HashSet<Integer>();	
 			Set<Integer> uniqueFile = new HashSet<Integer>();				// add all the available fragments, including mine an others  
@@ -140,7 +142,7 @@ public class MDFSFileRetriever {
 			uniqueFile.addAll(myfiles);
 			
 			// Add My KeyShare.
-			int keyIdx = directory.getStoredKeyIndex(fileId);
+			int keyIdx = directory.getStoredKeyIndex(fileId,serviceHelper.getMyNode().getNodeId());
 			if(keyIdx >= 0){
 				// add mine to keyShares
 				String dirName = MDFSFileInfo.getDirName(fileName,fileId);
@@ -279,7 +281,7 @@ public class MDFSFileRetriever {
 		FragmentInfo frag;
 		// Don't use the fragment that may not finish downloading yet
 		Set<Integer> downloaded = 
-			ServiceHelper.getInstance().getDirectory().getStoredFileIndex(fileId);
+			ServiceHelper.getInstance().getDirectory().getStoredFileIndex(fileId,serviceHelper.getMyNode().getNodeId()).getItemSet();
 		for (File f : files) {
 			if(f.getName().contains("__frag__")){
 				frag = IOUtilities.readObjectFromFile(f, FragmentInfo.class);
@@ -305,7 +307,7 @@ public class MDFSFileRetriever {
 		}
 		fileRetLog.decryEnd = System.currentTimeMillis();
 		
-		MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+		MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
 		// save decrypted data as a file
 		byte [] fileBytes = decoder.getPlainBytes();
 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_DECRYPTED);
@@ -469,8 +471,8 @@ public class MDFSFileRetriever {
 				timer.cancel();
 				if(success && tmp0.length() > 0){	// Hacky way to avoid 0 byte file
 					// update directory
-					MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
-					directory.addFileFragment(header.getCreatedTime(), header.getFragIndex());
+					MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
+					directory.addFileFragment(header.getCreatedTime(), header.getFragIndex(),serviceHelper.getMyNode().getNodeId());
 					locFragCounter.incrementAndGet();
 				}
 				else if(tmp0 != null){ 

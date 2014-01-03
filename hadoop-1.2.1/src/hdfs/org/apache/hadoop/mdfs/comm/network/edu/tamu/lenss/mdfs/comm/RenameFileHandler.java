@@ -7,22 +7,26 @@ import java.util.Set;
 
 import adhoc.etc.IOUtilities;
 import edu.tamu.lenss.mdfs.Constants;
-import edu.tamu.lenss.mdfs.MDFSDirectory;
+//import edu.tamu.lenss.mdfs.MDFSDirectory;
 import edu.tamu.lenss.mdfs.models.RenameFile;
 import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+
+import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
+import org.apache.hadoop.io.SetWritable;
+
 
 public class RenameFileHandler {
 	
 	public RenameFileHandler(){
 	}
 
-	public void processPacket(RenameFile rename){
+	public void processPacket(RenameFile rename,boolean local){
 		if(rename.getSrcFileName() == null || rename.getDestFileName() == null){
 			System.out.println(" Src is null or dest is null src: "+rename.getSrcFileName() + " dest: " + rename.getDestFileName());
 			return;
 		}
-		new RenameFileThread(rename.getSrcFileName(),rename.getDestFileName(),rename.getFileIds()).start();
+		new RenameFileThread(rename.getSrcFileName(),rename.getDestFileName(),rename.getFileIds(),local).start();
 	}
 
 	public void sendFileRenamePacket(RenameFile rename){
@@ -33,12 +37,14 @@ public class RenameFileHandler {
 		private String src;
 		private String dest;
 		private List<Long> blockIds;
+		private boolean local;
 
 
-		private RenameFileThread(String src,String dest, List<Long> fIds){
+		private RenameFileThread(String src,String dest, List<Long> fIds,boolean local){
 			this.blockIds = fIds;
 			this.src =src;
 			this.dest = dest;
+			this.local=local;
 		}
 
 		@Override
@@ -73,29 +79,31 @@ public class RenameFileHandler {
 
 
 						// Clean up the MDFSDirectory
-						MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
-						directory.removeDecryptedFile(srcFileId);
-						directory.removeEncryptedFile(srcFileId);
+						if(local){
+							MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
+							directory.removeDecryptedFile(srcFileId);
+							directory.removeEncryptedFile(srcFileId);
 
 
-						MDFSFileInfo fileInfo = new MDFSFileInfo(destFileName, destFileId ,true);
-						MDFSFileInfo prevFileInfo=directory.getFileInfo(srcFileId);
-						fileInfo.setCreator(prevFileInfo.getCreator());
-						fileInfo.setFragmentsParms(prevFileInfo.getN1(),prevFileInfo.getK1(),prevFileInfo.getN2(),prevFileInfo.getK2());
-						fileInfo.setFileLength(prevFileInfo.getFileLength());
-						fileInfo.setKeyStorage(prevFileInfo.getKeyStorage());
-						fileInfo.setFileStorage(prevFileInfo.getFileStorage());
+							MDFSFileInfo fileInfo = new MDFSFileInfo(destFileName, destFileId ,true);
+							MDFSFileInfo prevFileInfo=directory.getFileInfo(srcFileId);
+							fileInfo.setCreator(prevFileInfo.getCreator());
+							fileInfo.setFragmentsParms(prevFileInfo.getN1(),prevFileInfo.getK1(),prevFileInfo.getN2(),prevFileInfo.getK2());
+							fileInfo.setFileLength(prevFileInfo.getFileLength());
+							fileInfo.setKeyStorage(prevFileInfo.getKeyStorage());
+							fileInfo.setFileStorage(prevFileInfo.getFileStorage());
 
-						directory.removeFile(srcFileId);
-						directory.addFile(fileInfo);
+							directory.removeFile(srcFileId);
+							directory.addFile(fileInfo);
 
-						Set<Integer> filefrags= directory.getStoredFileIndex(srcFileId);
-						directory.removeFileFragment(srcFileId);
-						directory.addFileFragment(destFileId, filefrags);
-
-						int keyfrag = directory.getStoredKeyIndex(srcFileId);
-						directory.removeKeyFragment(srcFileId);
-						directory.addKeyFragment(destFileId,keyfrag);
+							//Set<Integer> filefrags= directory.getStoredFileIndex(srcFileId).getItemSet();
+							//directory.removeFileFragment(srcFileId);
+							//directory.addFileFragment(destFileId, new SetWritable(filefrags));
+							directory.replaceFileFragment(srcFileId,destFileId);
+							//int keyfrag = directory.getStoredKeyIndex(srcFileId);
+							//directory.removeKeyFragment(srcFileId);
+							directory.replaceKeyFragment(srcFileId,destFileId);
+						}
 
 						// Remove Encrypted File
 						file = new File(rootDir, "encrypted/" + MDFSFileInfo.getDirName(srcFileName, srcFileId));

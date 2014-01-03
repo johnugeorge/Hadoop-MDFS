@@ -13,6 +13,8 @@ import edu.tamu.lenss.mdfs.models.FileREQ;
 import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 
+import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
+
 public class FileRequestHandler {
 	private ServiceHelper serviceHelper;
 	
@@ -28,13 +30,13 @@ public class FileRequestHandler {
 	 */
 	public void processRequest(FileREQ fileReq){
 		serviceHelper = ServiceHelper.getInstance();
-		MDFSDirectory directory = serviceHelper.getDirectory();
+		MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
 		
 		FileREP reply = new FileREP(fileReq.getFileName(), fileReq.getFileCreatedTime(),
 				serviceHelper.getMyNode().getNodeId(), fileReq.getSource());
 		
-		Set<Integer> fileSet = directory.getStoredFileIndex(fileReq.getFileCreatedTime());
-		int storedKeyIdx = directory.getStoredKeyIndex(fileReq.getFileCreatedTime());
+		Set<Integer> fileSet = directory.getStoredFileIndex(fileReq.getFileCreatedTime(),serviceHelper.getMyNode().getNodeId()).getItemSet();
+		int storedKeyIdx = directory.getStoredKeyIndex(fileReq.getFileCreatedTime(),serviceHelper.getMyNode().getNodeId());
 		
 		// Reply with whatever fragments I have
 		if(fileReq.isAnyAvailable()){
