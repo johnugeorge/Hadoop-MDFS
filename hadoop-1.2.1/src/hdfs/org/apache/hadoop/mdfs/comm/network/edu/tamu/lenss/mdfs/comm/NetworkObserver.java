@@ -16,8 +16,8 @@ import adhoc.tcp.TCPConnection;
 import adhoc.tcp.TCPReceive.TCPReceiverData;
 import edu.tamu.lenss.mdfs.FileRequestHandler;
 import edu.tamu.lenss.mdfs.FragExchangeHelper;
-//import edu.tamu.lenss.mdfs.MDFSDirectory;
-//import edu.tamu.lenss.mdfs.ScheduledTask;
+import edu.tamu.lenss.mdfs.MDFSDirectory;
+import edu.tamu.lenss.mdfs.ScheduledTask;
 import edu.tamu.lenss.mdfs.comm.FileReplyHandler.FileREPListener;
 import edu.tamu.lenss.mdfs.comm.TopologyHandler.TopologyListener;
 import edu.tamu.lenss.mdfs.models.DeleteFile;
@@ -33,9 +33,6 @@ import edu.tamu.lenss.mdfs.models.NodeInfo;
 import edu.tamu.lenss.mdfs.models.TaskResult;
 import edu.tamu.lenss.mdfs.models.TaskSchedule;
 import edu.tamu.lenss.mdfs.models.TopologyDiscovery;
-
-import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
-
 //import edu.tamu.lenss.mdfs.activities.JobProcessing.JobManagerListener;
 //import android.os.Handler;
 //import android.os.Looper;
@@ -58,7 +55,7 @@ public class NetworkObserver implements Observer {
 	//private TaskProcessingHandler taskProcessingHandler = new TaskProcessingHandler();
 	private DeleteFileHandler deleteFileHandler = new DeleteFileHandler();
 	private RenameFileHandler renameFileHandler = new RenameFileHandler();
-	//private ScheduledTask scheduledTask = new ScheduledTask();
+	private ScheduledTask scheduledTask = new ScheduledTask();
 	//private FailureEstimator failureEstimator;
 	private ExecutorService pool;
 	//private PowerManager pm; 
@@ -79,7 +76,7 @@ public class NetworkObserver implements Observer {
 		myNode.startThread();
 		//failureEstimator = new FailureEstimator(this); failureEstimator.start();
 		pool = Executors.newCachedThreadPool();
-		//scheduledTask.start();
+		scheduledTask.start();
 	}
 	/*@Override
 	public void onCreate() {
@@ -122,17 +119,17 @@ public class NetworkObserver implements Observer {
 	
 	protected void deleteFiles(DeleteFile files){
 		deleteFileHandler.sendFileDeletionPacket(files);
-		deleteFileHandler.processPacket(files,true);	// Also delete my file locally
+		deleteFileHandler.processPacket(files);	// Also delete my file locally
 	}
 
 	protected void renameFiles(RenameFile files){
 		renameFileHandler.sendFileRenamePacket(files);
-		renameFileHandler.processPacket(files,true);	// Also delete my file locally
+		renameFileHandler.processPacket(files);	// Also delete my file locally
 	}
 
 
 	protected void sendFileUpdate(NewFileUpdate update){
-		//myNode.sendAODVDataContainer(update);
+		myNode.sendAODVDataContainer(update);
 	}
 	
 	/*private JobManagerListener jobManagerListener;
@@ -149,7 +146,7 @@ public class NetworkObserver implements Observer {
 		myNode.sendAODVDataContainer(new JobComplete());
 	}
 	
-	/*protected void broadcastMyDirectory(){
+	protected void broadcastMyDirectory(){
 		List<MDFSFileInfo> list = ServiceHelper.getInstance().getDirectory().getFileList();
 		for(MDFSFileInfo fInfo : list){
 			NewFileUpdate fUpdate = new NewFileUpdate(fInfo);
@@ -165,7 +162,7 @@ public class NetworkObserver implements Observer {
 				myNode.sendAODVDataContainer(fUpdate);
 			}			
 		}
-	}*/
+	}
 	
 	protected Node getMyNode(){
 		return myNode;
@@ -223,7 +220,7 @@ public class NetworkObserver implements Observer {
 							receiveTopologyDiscovery(top);
 						}
 					});
-					showToast("Receive Discovery from " + top.getSource());
+					//showToast("Receive Discovery from " + top.getSource());
 					break;
 				case MDFSPacketType.NODE_INFO:
 					final NodeInfo info = (NodeInfo)msg.getContainedData();
@@ -247,9 +244,9 @@ public class NetworkObserver implements Observer {
 					break;
 				case MDFSPacketType.NEW_FILE_UPDATE:
 					final NewFileUpdate dirUpdate = (NewFileUpdate)msg.getContainedData();
-					MDFSDirectoryProtocol dir = ServiceHelper.getInstance().getDirectory();
+					MDFSDirectory dir = ServiceHelper.getInstance().getDirectory();
 					dir.addFile(dirUpdate.getFileInfo());
-					showToast("Receive Directory Update from " + dirUpdate.getSource());
+					//showToast("Receive Directory Update from " + dirUpdate.getSource());
 					break;
 				case MDFSPacketType.FILE_REQ:
 					final FileREQ fileReq = (FileREQ)msg.getContainedData();
@@ -259,7 +256,7 @@ public class NetworkObserver implements Observer {
 							fileReqHandler.processRequest(fileReq);
 						}
 					});
-					showToast("Receive File Request from " + fileReq.getSource());
+					//showToast("Receive File Request from " + fileReq.getSource());
 					break;
 				case MDFSPacketType.FILE_REP:
 					final FileREP fileRep = (FileREP)msg.getContainedData();
@@ -276,7 +273,7 @@ public class NetworkObserver implements Observer {
 					pool.execute(new Runnable(){
 						@Override
 						public void run() {
-							deleteFileHandler.processPacket(deleteFile,false);
+							deleteFileHandler.processPacket(deleteFile);
 						}
 					});
 					showToast("Receive DeleteFile from " + deleteFile.getSource());
@@ -286,7 +283,7 @@ public class NetworkObserver implements Observer {
 					pool.execute(new Runnable(){
 						@Override
 						public void run() {
-							renameFileHandler.processPacket(renameFile,false);
+							renameFileHandler.processPacket(renameFile);
 						}
 					});
 					showToast("Receive RenameFile from " + renameFile.getSource());
@@ -347,7 +344,7 @@ public class NetworkObserver implements Observer {
 		/*Message m = new Message();
 		m.obj = msg;
 		uiHandler.sendMessage(m);*/
-		Logger.i(TAG, msg);
+		// Logger.i(TAG, msg);
 	}
 	/*private Handler uiHandler = new Handler(){
 		@Override
@@ -371,7 +368,7 @@ public class NetworkObserver implements Observer {
 		myNode.deleteObserver(this);
 		myNode.stopThread();
 		pool.shutdown();
-		//scheduledTask.stop();
+		scheduledTask.stop();
 	}
 	
 	/*@Override

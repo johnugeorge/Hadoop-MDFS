@@ -39,7 +39,6 @@ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 import edu.tamu.lenss.mdfs.utils.JCountDownTimer;
 import edu.tamu.lenss.mdfs.Constants;
 
-import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
 
 
 public class MDFSFileCreator {
@@ -202,14 +201,14 @@ public class MDFSFileCreator {
 		File fragsDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/"
 				+ MDFSFileInfo.getDirName(fileName, fileInfo.getCreatedTime()));
 
-		MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
+		MDFSDirectory directory = serviceHelper.getDirectory();
 		// Create file fragments
 		for (FragmentInfo frag : fragInfos) {
 			File tmp = IOUtilities.createNewFile(fragsDir, frag.getFileName()
 					+ "__frag__" + frag.getFragmentNumber());
 			if (IOUtilities.writeObjectToFile(frag, tmp)) {
 				directory.addFileFragment(fileInfo.getCreatedTime(),
-						frag.getFragmentNumber(),serviceHelper.getMyNode().getNodeId());
+						frag.getFragmentNumber());
 			}
 		}
 		listener.statusUpdate("Encryption Complete");
@@ -325,9 +324,9 @@ public class MDFSFileCreator {
 					File tmp = IOUtilities.createNewFile(fileFragDir,
 							key.getFileName() + "__key__" + key.getIndex());
 					if (IOUtilities.writeObjectToFile(key, tmp)) {
-						MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
+						MDFSDirectory directory = serviceHelper.getDirectory();
 						directory.addKeyFragment(fileInfo.getCreatedTime(),
-								key.getIndex(),serviceHelper.getMyNode().getNodeId());
+								key.getIndex());
 					}
 				}
 			}

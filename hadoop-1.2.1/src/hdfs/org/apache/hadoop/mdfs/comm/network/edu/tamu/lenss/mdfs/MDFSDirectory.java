@@ -23,57 +23,40 @@ import adhoc.etc.Logger;
 import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 
-import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
-import org.apache.hadoop.io.SetWritable;
-import org.apache.hadoop.mdfs.protocol.MDFSInfoList;
-
-
-
-
-
 /**
  * This class track the current status of MDFS File System. <br>
  * Available files in the network, local available files, or local available fragments...
  * @author Jay
  *
  */
-public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
+public class MDFSDirectory implements Serializable {
 	private static final String TAG = MDFSDirectory.class.getSimpleName();
 	private static final long serialVersionUID = 1L;
 	private Map<Long, MDFSFileInfo> fileMap;	// Use File Creation Time as the key now. Should use UUID
 	private Map<String, Long> nameToKeyMap;		// Used to map from file name to file ID(createdTime)
 	
-	private Map<Long, Map<Integer,Integer>> keyFragMap;		// Used to map from fileId to key fragment#
-	private Map<Long, Map<Integer,Set<Integer>>> fileFragMap; // Used to map from fileId to file fragment#
+	private Map<Long, Integer> keyFragMap;		// Used to map from fileId to key fragment#
+	private Map<Long, Set<Integer>> fileFragMap; // Used to map from fileId to file fragment#
 	private Set<Long> encryptedFileSet;			// A set of files that have been combined, but encrypted.
 	private Set<Long> decryptedFileSet;			// A set of files that have been decrypted temporarily
 	
 	public MDFSDirectory(){
 		fileMap = new HashMap<Long, MDFSFileInfo>();
 		nameToKeyMap = new HashMap<String, Long>();
-		keyFragMap = new HashMap<Long, Map<Integer,Integer>>();
-		fileFragMap = new HashMap<Long, Map<Integer,Set<Integer>>>();
+		keyFragMap = new HashMap<Long, Integer>();
+		fileFragMap = new HashMap<Long, Set<Integer>>();
 		encryptedFileSet = new HashSet<Long>();
 		decryptedFileSet = new HashSet<Long>();
 	}
-
-
-	public long getProtocolVersion(String protocol,
-			long clientVersion) throws IOException {
-		return serialVersionUID;
-	}
-
-
+	
 	/**
 	 * Return null if the fileId does not exist in the directory
 	 * @param fileId
 	 * @return
 	 */
 	public MDFSFileInfo getFileInfo(long fileId){
-		//Logger.v(TAG," getFileInfo "+fileId+" fileMap size "+fileMap.size());
 		return fileMap.get(fileId);
 	}
-
 	public MDFSFileInfo getFileInfo(String fName){
 		Long fileId = nameToKeyMap.get(fName);
 		if(fileId != null)
@@ -86,13 +69,13 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 	/**
 	 * @return	A List of all available files. The List may be empty
 	 */
-	public MDFSInfoList getFileList(){
+	public List<MDFSFileInfo> getFileList(){
 		List<MDFSFileInfo> list;
 		if(!fileMap.isEmpty())
 			 list = new ArrayList<MDFSFileInfo>(fileMap.values());
 		else
 			list = new ArrayList<MDFSFileInfo>();;
-		return (new MDFSInfoList(list));
+		return list;
 	}
 	
 	/**
@@ -111,27 +94,17 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 	 * @param fileId
 	 * @return -1 if there is no key fragment available
 	 */
-	public int getStoredKeyIndex(long fileId,int creator){
-		//Logger.v(TAG," getStoredKeyIndex "+fileId+" "+creator);
-		Map<Integer,Integer> idx = keyFragMap.get(fileId);
-		if(idx != null){
-			if(idx.get(creator) != null){
-				//Logger.v(TAG," getStoredKeyIndex "+fileId+" "+creator+" Returning "+idx.get(creator));
-				return idx.get(creator);
-			}
-			else
-				return -1;
-		}
+	public int getStoredKeyIndex(long fileId){
+		Integer idx = keyFragMap.get(fileId);
+		if(idx != null)
+			return idx;
 		else
 			return -1;
 	}
-	public int getStoredKeyIndex(String fName, int creator){
-		//Logger.v(TAG," getStoredKeyIndex "+fName+" "+creator);
+	public int getStoredKeyIndex(String fName){
 		Long fileId = nameToKeyMap.get(fName);
-		if(fileId != null){
-			//Logger.v(TAG," getStoredKeyIndex Name "+fName+" "+creator+" Returning "+getStoredKeyIndex(fileId,creator));
-			return getStoredKeyIndex(fileId,creator);
-		}
+		if(fileId != null)
+			return getStoredKeyIndex(fileId);
 		else
 			return -1;
 	}
@@ -140,49 +113,19 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 	 * @param fileId
 	 * @return	null if there is no file fragment avaiable
 	 */
-	public SetWritable getStoredFileIndex(long fileId,int creator){
-		Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
-		//Logger.v(TAG," getStoredFileIndex "+fileId+" "+creator);
-		if(mp != null){
-			if(fileFragMap.get(fileId).get(creator) != null){
-				//Logger.v(TAG," getStoredFileIndex "+fileId+" "+creator+" Returning "+fileFragMap.get(fileId).get(creator));
-				return (new SetWritable(fileFragMap.get(fileId).get(creator)));
-			}
-			else{
-				return (new SetWritable(new HashSet<Integer>()));
-			}
-		}
-		else
-			return (new SetWritable(new HashSet<Integer>()));
+	public Set<Integer> getStoredFileIndex(long fileId){
+		return fileFragMap.get(fileId);
 	}
-
-	public SetWritable getStoredFileIndex(String fName,int creator){
-		//Logger.v(TAG," getStoredFileIndex "+fName+" "+creator);
+	public Set<Integer> getStoredFileIndex(String fName){
 		Long fileId = nameToKeyMap.get(fName);
 		if(fileId != null)
-		{
-			Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
-			if(mp != null){
-				if(fileFragMap.get(fileId).get(creator) != null){
-					 //Logger.v(TAG," getStoredFileIndex  "+fileId+" "+creator+" Returning "+fileFragMap.get(fileId).get(creator));
-					return (new SetWritable(fileFragMap.get(fileId).get(creator)));
-				}
-				else{
-					return (new SetWritable(new HashSet<Integer>()));
-				}
-
-			}
-			else
-				return (new SetWritable(new HashSet<Integer>()));
-
-		}
+			return fileFragMap.get(fileId);
 		else
-			return (new SetWritable(new HashSet<Integer>()));
+			return null;
 	}
 	
 	
 	public void addFile(MDFSFileInfo file){
-		Logger.v(TAG," Adding File Id"+file.getCreatedTime()+" fileMap size "+fileMap.size());
 		if(fileMap.containsKey(file.getCreatedTime())){
 			MDFSFileInfo tmp= fileMap.get(file.getCreatedTime());
 			if(!tmp.getFileName().equals(file.getFileName())){
@@ -206,7 +149,6 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 	 * @param fileId
 	 */
 	public void removeFile(long fileId){
-		Logger.v(TAG," Removing File Id"+fileId+" fileMap size "+fileMap.size());
 		if(fileMap.containsKey(fileId)){
 			String name = fileMap.get(fileId).getFileName();
 			nameToKeyMap.remove(name);
@@ -214,89 +156,32 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 		fileMap.remove(fileId);
 	}
 	
-	public void addKeyFragment(long fileId, int keyIndex,int creator){
-		//Logger.v(TAG," store Key Index "+fileId+" "+keyIndex+" "+creator);
-
-		if(keyFragMap.containsKey(fileId)){
-			Map<Integer,Integer> mp = keyFragMap.get(fileId);
-			if(mp != null){
-				Integer key = keyFragMap.get(fileId).get(creator);
-				if(key != null){
-					Logger.v(TAG," Error. Key index is added again for same node");
-				}
-				else{
-					keyFragMap.get(fileId).put(creator,keyIndex);
-
-				}
-
-			}
-		}
-		else{
-			Map<Integer,Integer> mp = new HashMap<Integer,Integer>();
-			mp.put(creator,keyIndex);
-			keyFragMap.put(fileId, mp);
-		}
-
-
+	public void addKeyFragment(long fileId, int keyIndex){
+		keyFragMap.put(fileId, keyIndex);
 	}
-
-	public void addKeyFragment(String fileName, int keyIndex,int creator){
-		//Logger.v(TAG," store Key Index string "+fileName+" "+keyIndex+" "+creator);
+	public void addKeyFragment(String fileName, int keyIndex){
 		Long fileId = nameToKeyMap.get(fileName);
 		if(fileId != null )
-			addKeyFragment(fileId,keyIndex,creator);
-	}
-
-	public void replaceKeyFragment(long src,long dst){
-		Map<Integer,Integer> mp=keyFragMap.get(src);
-		keyFragMap.remove(src);
-		keyFragMap.put(dst,mp);
-
+			keyFragMap.put(fileId, keyIndex);
 	}
 	
-	public void replaceFileFragment(long src,long dst){
-		Map<Integer,Set<Integer>> mp=fileFragMap.get(src);
-		fileFragMap.remove(src);
-		fileFragMap.put(dst,mp);
-
+	public void removeKeyFragment(long fileId){
+		keyFragMap.remove(fileId);
 	}
-
-	public void removeKeyFragment(long fileId,int creator){
-		//Logger.v(TAG," remove key fragment "+fileId+" "+creator);
-		keyFragMap.get(fileId).remove(creator);
-	}
-	public void removeKeyFragment(String fileName,int creator){
-		//Logger.v(TAG," remove key  Fragment "+fileName+" "+creator);
+	public void removeKeyFragment(String fileName){
 		Long fileId = nameToKeyMap.get(fileName);
 		if(fileId != null )
-			keyFragMap.get(fileId).remove(creator);
+			keyFragMap.remove(fileId);
 	}
-
-	public void addFileFragment(long fileId, int fileIndex,int creator){
-		//Logger.v(TAG," store file Index "+fileId+" "+fileIndex+" "+creator);
+	
+	public void addFileFragment(long fileId, int fileIndex){
 		if(fileFragMap.containsKey(fileId)){
-			Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
-			if(mp != null){
-				Set<Integer> fFrag = fileFragMap.get(fileId).get(creator);
-				if(fFrag != null){
-					fFrag.add(fileIndex);
-				}
-				else{
-					HashSet<Integer> frag = new HashSet<Integer>();
-					frag.add(fileIndex);
-					fileFragMap.get(fileId).put(creator,frag);
-
-
-				}
-
-			}
+			fileFragMap.get(fileId).add(fileIndex);
 		}
 		else{
 			HashSet<Integer> fFrag = new HashSet<Integer>();
 			fFrag.add(fileIndex);
-			Map<Integer,Set<Integer>> mp = new HashMap<Integer,Set<Integer>>();
-			mp.put(creator,fFrag);
-			fileFragMap.put(fileId, mp);
+			fileFragMap.put(fileId, fFrag);
 		}
 	}
 	
@@ -306,66 +191,42 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 	 * @param fileName
 	 * @param fileIndex
 	 */
-	public void addFileFragment(String fileName, int fileIndex,int creator){
-		//Logger.v(TAG," store file Index "+fileName+" "+fileIndex+" "+creator);
+	public void addFileFragment(String fileName, int fileIndex){
 		Long fileId = nameToKeyMap.get(fileName);
 		if(fileId == null )
 			return;
-		addFileFragment(fileId, fileIndex,creator);
+		addFileFragment(fileId, fileIndex);
 	}
-
-	public void addFileFragment(long fileId, SetWritable fileIndex,int creator){
-		//Logger.v(TAG," store file Index "+fileId+" "+fileIndex.size()+" "+creator);
+	
+	public void addFileFragment(long fileId, Set<Integer> fileIndex){
 		if(fileFragMap.containsKey(fileId)){
-
-			Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
-			if(mp != null){
-				Set<Integer> fFrag = fileFragMap.get(fileId).get(creator);
-				if(fFrag != null){
-					fFrag.addAll(fileIndex.getItemSet());
-				}
-				else{
-					HashSet<Integer> frag = new HashSet<Integer>();
-					frag.addAll(fileIndex.getItemSet());
-					fileFragMap.get(fileId).put(creator,frag);
-
-
-				}
-
-			}
-
+			fileFragMap.get(fileId).addAll(fileIndex);
 		}
 		else{
 			HashSet<Integer> fFrag = new HashSet<Integer>();
-			fFrag.addAll(fileIndex.getItemSet());
-			Map<Integer,Set<Integer>> mp = new HashMap<Integer,Set<Integer>>();
-			mp.put(creator,fFrag);
-			fileFragMap.put(fileId, mp);
+			fFrag.addAll(fileIndex);
+			fileFragMap.put(fileId, fFrag);
 		}
 	}
-
-	public void addFileFragment(String fileName, SetWritable fileIndex,int creator){
-		//Logger.v(TAG," store file Index "+fileName+" "+fileIndex.size()+" "+creator);
+	public void addFileFragment(String fileName, Set<Integer> fileIndex){
 		Long fileId = nameToKeyMap.get(fileName);
 		if(fileId == null )
 			return;
-		addFileFragment(fileId, fileIndex,creator);
+		addFileFragment(fileId, fileIndex);
 	}
 	
-	public void removeFileFragment(long fileId,int creator){
-		//Logger.v(TAG," remove file Index "+fileId+" "+creator);
-		fileFragMap.get(fileId).remove(creator);
+	public void removeFileFragment(long fileId){
+		fileFragMap.remove(fileId);
 	}
 	
 	/**
 	 * Remove ALL fragments of this file
 	 * @param fileName
 	 */
-	public void removeFileFragment(String fileName,int creator){
-		//Logger.v(TAG," remove file Fragment "+fileName+" "+creator);
+	public void removeFileFragment(String fileName){
 		Long fileId = nameToKeyMap.get(fileName);
 		if(fileId != null )
-			fileFragMap.get(fileId).remove(creator);
+			fileFragMap.remove(fileId);
 	}
 	
 	public void addEncryptedFile(long fileId){
@@ -443,7 +304,7 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 	/**
 	 * Make sure the directory is synchronized with the physical files
 	 */
-	public void syncLocal(int nodeId){
+	public void syncLocal(){
 		File rootDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT);
 		if(!rootDir.exists())
 			return;			// Don't need to sync at all
@@ -484,10 +345,10 @@ public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
 					try{
 						index = Integer.parseInt(fragName.substring(fragName.lastIndexOf("_")+1));
 						if(fragName.contains("__key__")){
-							addKeyFragment(fileName, index,nodeId);
+							addKeyFragment(fileName, index);
 						}
 						else if (fragName.contains("__frag__")){
-							addFileFragment(fileName, index,nodeId);
+							addFileFragment(fileName, index);
 						}
 					}
 					catch(NullPointerException e){

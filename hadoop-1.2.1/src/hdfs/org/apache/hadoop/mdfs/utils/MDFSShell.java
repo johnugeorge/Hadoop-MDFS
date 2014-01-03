@@ -72,23 +72,6 @@ class MDFSShell{
 
 			}
 
-			else if(args[0].contains("-createMultipleRandomFiles") ){
-				int noFiles = Integer.parseInt(args[2]);
-				for(int j=0;j<noFiles;j++){
-					System.out.println(" Creating File "+args[1]+j+" with random Contents");
-					FSDataOutputStream out=fs.create(new Path(args[1]+j),FsPermission.getDefault(),false,(int)4192,(short)1,(long)4192*1024,null);
-					BufferedWriter br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
-					int i=0;
-					while(i<10000){
-						br.write("Hello World");
-						br.write(" done ");
-						i++;}
-					br.close();
-					out.close();
-				}
-
-			}
-
 			else if(args[0].contains("-rename") ){
 				System.out.println(" Renaming src "+args[1]+" to dest "+args[2]);
 				fs.rename(new Path(args[1]),new Path(args[2]));
@@ -111,7 +94,7 @@ class MDFSShell{
 				System.out.println(" Printing Complete Tree  from "+args[1]);
 				fs.printTree(new Path(args[1]),true);
 			}
-			else if(args[0].contains("-readFile") ){
+			else if(args[0].contains("-read") ){
 				System.out.println(" Reading File  "+args[1]);
 				boolean toPrint=false;
 				if(args.length >= 3)
@@ -137,29 +120,6 @@ class MDFSShell{
 					System.out.println(" Read String is "+str);
 				System.out.println(" Reading complete file done. Total "+ count+ " chars");
 
-
-			}
-			else if(args[0].contains("-readMultipleFiles") ){
-				System.out.println(" Reading File  "+args[1]);
-				boolean toPrint=false;
-				int noFiles=Integer.parseInt(args[2]);
-				for(int j=0;j<noFiles;j++){
-					FSDataInputStream in=fs.open(new Path(args[1]+j));
-					BufferedReader rd = new BufferedReader( new InputStreamReader( in) );
-
-
-					byte[] b1 = new byte[4096];
-					int a=0;
-					int count=0;
-					System.out.println(" Read start");
-					while((a=in.read(b1,0,4096)) !=-1){
-						count+=a;
-						//if(toPrint)
-						//	sb.append((char)a);
-					}
-					System.out.println(" Read end");
-					System.out.println(" Reading complete file done. Total "+ count+ " chars");
-				}
 
 			}
 			else{
