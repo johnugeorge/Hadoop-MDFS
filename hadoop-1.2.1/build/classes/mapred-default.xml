@@ -67,7 +67,7 @@
 
 <property>
   <name>io.sort.mb</name>
-  <value>100</value>
+  <value>10</value>
   <description>The total amount of buffer memory to use while sorting 
   files, in megabytes.  By default, gives each merge stream 1MB, which
   should minimize seeks.</description>
@@ -75,7 +75,7 @@
 
 <property>
   <name>io.sort.record.percent</name>
-  <value>0.05</value>
+  <value>0.5</value>
   <description>The percentage of io.sort.mb dedicated to tracking record
   boundaries. Let this value be r, io.sort.mb be x. The maximum number
   of records collected before the collection thread must block is equal
