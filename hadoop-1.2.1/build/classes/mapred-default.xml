@@ -601,7 +601,7 @@
 
 <property>
   <name>mapred.job.shuffle.merge.percent</name>
-  <value>0.30</value>
+  <value>0.66</value>
   <description>The usage threshold at which an in-memory merge will be
   initiated, expressed as a percentage of the total memory allocated to
   storing in-memory map outputs, as defined by
@@ -692,7 +692,7 @@
  
 <property>
   <name>tasktracker.http.threads</name>
-  <value>10</value>
+  <value>40</value>
   <description>The number of worker threads that for the http server. This is
                used for map output fetching
   </description>
