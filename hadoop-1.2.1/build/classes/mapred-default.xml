@@ -67,7 +67,7 @@
 
 <property>
   <name>io.sort.mb</name>
-  <value>10</value>
+  <value>100</value>
   <description>The total amount of buffer memory to use while sorting 
   files, in megabytes.  By default, gives each merge stream 1MB, which
   should minimize seeks.</description>
@@ -75,7 +75,7 @@
 
 <property>
   <name>io.sort.record.percent</name>
-  <value>0.5</value>
+  <value>0.05</value>
   <description>The percentage of io.sort.mb dedicated to tracking record
   boundaries. Let this value be r, io.sort.mb be x. The maximum number
   of records collected before the collection thread must block is equal
@@ -463,7 +463,7 @@
 
 <property>
   <name>mapred.child.java.opts</name>
-  <value>-Xmx512m</value>
+  <value>-Xmx768m</value>
   <description>Java opts for the task tracker child processes.  
   The following symbol, if present, will be interpolated: @taskid@ is replaced 
   by current TaskID. Any other occurrences of '@' will go unchanged.
@@ -601,7 +601,7 @@
 
 <property>
   <name>mapred.job.shuffle.merge.percent</name>
-  <value>0.66</value>
+  <value>0.30</value>
   <description>The usage threshold at which an in-memory merge will be
   initiated, expressed as a percentage of the total memory allocated to
   storing in-memory map outputs, as defined by
@@ -692,7 +692,7 @@
  
 <property>
   <name>tasktracker.http.threads</name>
-  <value>40</value>
+  <value>10</value>
   <description>The number of worker threads that for the http server. This is
                used for map output fetching
   </description>
