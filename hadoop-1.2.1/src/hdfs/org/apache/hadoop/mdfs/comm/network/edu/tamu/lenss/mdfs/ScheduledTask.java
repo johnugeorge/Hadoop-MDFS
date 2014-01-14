@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import edu.tamu.lenss.mdfs.comm.ServiceHelper;
 
 public class ScheduledTask {
-	private ScheduledThreadPoolExecutor taskExecutor = new ScheduledThreadPoolExecutor(1);
+	/*private ScheduledThreadPoolExecutor taskExecutor = new ScheduledThreadPoolExecutor(1);
 	public static final int NODEINFO_PERIOD = 45000;
 	public ScheduledTask(){
 		
@@ -27,5 +27,5 @@ public class ScheduledTask {
     			ServiceHelper.getInstance().broadcastMyDirectory();
     		}
     	}, 0, NODEINFO_PERIOD, TimeUnit.MILLISECONDS);
-	}
+	}*/
 }

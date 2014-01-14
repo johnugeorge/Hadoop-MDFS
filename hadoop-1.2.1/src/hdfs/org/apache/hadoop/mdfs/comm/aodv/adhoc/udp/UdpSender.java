@@ -45,13 +45,13 @@ public class UdpSender {
 	 * @throws IOException 
 	 * @throws SizeLimitExceededException is thrown if the length of the data to be sent exceeds the limit
 	 */
-	private InetAddress IPAddress;
+	//private InetAddress IPAddress;
 	private byte[] data = new byte[Constants.UDP_MAX_PACKAGE_SIZE];
-	private DatagramPacket sendPacket = new DatagramPacket(data, data.length, IPAddress, receiverPort + 1);
+	private DatagramPacket sendPacket = new DatagramPacket(data,data.length);
 	
 	public boolean sendPacket(int destinationNodeID, final byte[] data) throws IOException, DataExceedsMaxSizeException {
 		if (data.length <= Constants.UDP_MAX_PACKAGE_SIZE) {
-			IPAddress = InetAddress.getByName(subNet+ destinationNodeID);
+			final InetAddress IPAddress = InetAddress.getByName(subNet+ destinationNodeID);
 			// do we have a packet to be broadcasted?
 			
 			if (destinationNodeID == Constants.BROADCAST_ADDRESS) {
@@ -63,34 +63,49 @@ public class UdpSender {
 				datagramSocket.send(sendPacket);
 			} else {
 				// Hack! Use TCP instead of UDP
-				pool.execute(new Runnable(){
-					@Override
-					public void run() {
-						Socket tcpSocket=null;
-						try {
-							tcpSocket = new Socket(IPAddress, receiverPort);
-							//Logger.v(TAG, "Start TCP Connection Established");
-							tcpSocket.getOutputStream().write(data);
-						} catch (IOException e) {
-							e.printStackTrace();
-						} finally{
-							if(tcpSocket != null){
-								try {
-									tcpSocket.getOutputStream().flush();
-									tcpSocket.close();
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}
-						}
-						Logger.v(TAG, "data of length: " + data.length + " bytes is sent to "	+ IPAddress);
-					}
-				});
+				pool.execute(new UdpPacketRunnable(destinationNodeID, data));
 			}
 			return true;
 		} else {
 			throw new DataExceedsMaxSizeException();
 		}
+	}
+	
+	private class UdpPacketRunnable implements Runnable{
+		private int destinationNodeID;
+		private byte[] data;
+		
+		public UdpPacketRunnable(int destinationNodeIDIn, final byte[] dataIn){
+			this.destinationNodeID = destinationNodeIDIn;
+			this.data = dataIn;
+		}
+		@Override
+		public void run() {
+			Socket tcpSocket=null;
+			try {
+				InetAddress IPAddress = InetAddress.getByName(subNet+ destinationNodeID);
+				tcpSocket = new Socket(IPAddress, receiverPort);
+				//Logger.v(TAG, "Start TCP Connection Established");
+				tcpSocket.getOutputStream().write(data);
+			} catch (IOException e) {
+				e.printStackTrace();
+				Logger.v(TAG, " Error in TCPSocket  in UDPSender when write");
+
+			} finally{
+				if(tcpSocket != null){
+					try {
+						tcpSocket.getOutputStream().flush();
+						tcpSocket.close();
+						Logger.v(TAG, "data of length: " + data.length + " bytes is sent to "	+ tcpSocket.getInetAddress().getHostAddress());
+					} catch (IOException e) {
+						e.printStackTrace();
+						Logger.v(TAG, " Error in TCPSocket  in UDPSender when close");
+					}
+				}
+			}
+			
+		}
+		
 	}
 	
 	public void closeSoket(){

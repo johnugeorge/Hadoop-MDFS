@@ -102,12 +102,12 @@ public class FacilityLocation {
 							fragmentSource.put(tmp.getNodeIndex(), new ArrayList<Integer>());
 							fragmentSource.get(tmp.getNodeIndex()).add(tmp.getStorageIndex());
 						}
-						Logger.v(TAG, "Node " + tmp.getNodeIndex() + ", Storage " + tmp.getStorageIndex());
+						//Logger.v(TAG, "Node " + tmp.getNodeIndex() + ", Storage " + tmp.getStorageIndex());
 					}
 					else if(tmp.getType()==VarType.node){
 						
 						locations.add(tmp.getStorageIndex());
-						Logger.v(TAG, "Storage Node: " + tmp.getStorageIndex());
+						//Logger.v(TAG, "Storage Node: " + tmp.getStorageIndex());
 					}
 				}
 			}

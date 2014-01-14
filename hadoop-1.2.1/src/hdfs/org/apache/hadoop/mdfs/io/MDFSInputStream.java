@@ -18,6 +18,7 @@ import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 import org.apache.hadoop.mdfs.utils.MountFlags;
 import org.apache.hadoop.mdfs.protocol.BlockInfo;
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
+import org.apache.commons.logging.*;
 
 
 
@@ -37,6 +38,7 @@ public class MDFSInputStream extends FSInputStream {
 	private byte[] oneByteBuf = new byte[1];
 	private BlockReader blockReader;
 	private Configuration conf;
+	public static final Log LOG = LogFactory.getLog(MDFSInputStream.class);
 
 
 
@@ -135,7 +137,8 @@ public class MDFSInputStream extends FSInputStream {
 				filePos += result;
 			} else {
 				// got a EOS from reader though we expect more data on it.
-				throw new IOException("Unexpected EOS from the reader");
+				throw new IOException("Unexpected EOS from the reader. FilePos "+filePos+" result "+result+" len "+len
+					       +" realLen "+realLen+" currentBlockEnd "+currentBlockEnd+" offset "+off   );
 			}
 			//for(byte b:buf)
 			//	 System.out.println(" ReadByte "+(char)b+" FilePos "+filePos);
@@ -231,16 +234,22 @@ public class MDFSInputStream extends FSInputStream {
 		long blockId = targetBlock.getBlock().getBlockId();
 		String blockLoc= BlockReader.getBlockWriteLocationInFS(src,blockId);
 		System.out.println(" BlockLocation  of block "+blockId +" is "+ blockLoc);
+		LOG.error(" BlockLocation  of block "+blockId +" is "+ blockLoc);
 		System.out.println(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
+		LOG.error(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
 		
 		try{
+			LOG.error("First Attempt: To Read File"+src+" blockId "+blockId+" blockLoc "+blockLoc);
 			blockReader=new BlockReader(namesystem,src,blockId,offsetIntoBlock);
 		}
 		catch(FileNotFoundException e){
 
 			System.out.println(" Retrieving file from network as file is not present Locally");
+			LOG.error("Second Attempt: Retrieving file from network as file is not present Locally"+src+" blockId "+blockId+" blockLoc "+blockLoc);
 			datasystem.retrieveBlock(src,blockLoc,blockId);
+			LOG.error("Second Attempt: BlockRetrieved"+src+" blockId "+blockId+" blockLoc "+blockLoc);
 			blockReader=new BlockReader(namesystem,src,blockId,offsetIntoBlock);
+			LOG.error("Block Read Successfully"+src+" blockId "+blockId+" blockLoc "+blockLoc);
 
 		}
 		return blockReader;	

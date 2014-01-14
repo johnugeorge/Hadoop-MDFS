@@ -22,7 +22,7 @@ public class BlockWriter{
 
 
 	BlockWriter(String fileName,boolean append) throws FileNotFoundException,IOException{
-		System.out.println(" Creating BlockWriter for fileName "+fileName+" append "+append);
+		//System.out.println(" Creating BlockWriter for fileName "+fileName+" append "+append);
 		src=fileName;
 		File f = new File(fileName);
 
@@ -38,7 +38,7 @@ public class BlockWriter{
 
 
 	public void writeBuffer(byte[] buffer,int offset,int length) throws IOException{
-		System.out.println("  writing buffer offset "+ offset+" length "+length + " src "+src);
+		//System.out.println("  writing buffer offset "+ offset+" length "+length + " src "+src);
 		dataOut.write(buffer,offset,length);
 	}
 

@@ -47,7 +47,7 @@ public class TCPSend {
 		}*/
 		nextHopIp = destIp;
 		try{
-			Logger.v(TAG, "Connecting to " + nextHopIp + "...");
+			//Logger.v(TAG, "Connecting to " + nextHopIp + "...");
 			tcpSocket = new Socket(nextHopIp, destPort);
 			Logger.v(TAG, "Connected with " + nextHopIp);
 			
@@ -106,7 +106,7 @@ public class TCPSend {
 			packet.getStatus()==TCPPacketType.RouteEstablished &&
 			packet.getSourceIP().equalsIgnoreCase(destIp)){
 			
-			Logger.v(TAG, "Packet verified!!!!");
+			//Logger.v(TAG, "Packet verified!!!!");
 			return true;
 		}
 		else{

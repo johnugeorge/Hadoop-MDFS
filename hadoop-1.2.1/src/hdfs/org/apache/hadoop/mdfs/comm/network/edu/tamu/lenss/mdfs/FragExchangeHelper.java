@@ -22,6 +22,9 @@ import edu.tamu.lenss.mdfs.models.KeyFragPacket;
 import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 
+
+import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
+
 /**
  * All functions in this class are blocking calls. Need to be handled in Thread
  * @author Jay
@@ -38,6 +41,7 @@ public class FragExchangeHelper {
 	public void downloadKeyFragment(final KeyFragPacket keyPacket){
 		KeyShareInfo key = keyPacket.getKeyShareInfo();
 		String fileDirName = MDFSFileInfo.getDirName(keyPacket.getFileName(), keyPacket.getCreatedTime());
+
 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + fileDirName);
 		int tialCnt = 0;
 		while(!tmp0.exists() && !tmp0.mkdirs()){
@@ -55,13 +59,18 @@ public class FragExchangeHelper {
 				key.getFileName()+"__key__" + key.getIndex());
 		
 		if(tmp0.exists() && tmp0.length() > 0){	// We send KeyFragment multiple times....hacky way to fix things
+			Logger.v(TAG, "Returning as file already exists");
 			return;
 		}
 		
 		if(IOUtilities.writeObjectToFile(key, tmp0)){
 			// Update Directory
-			MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
-			directory.addKeyFragment(keyPacket.getCreatedTime(), key.getIndex());
+			MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
+			directory.addKeyFragment(keyPacket.getCreatedTime(), key.getIndex(),ServiceHelper.getInstance().getMyNode().getNodeId());
+		}
+		else{
+
+			Logger.v(TAG, " Creating key Failure");
 		}
 	}
 	
@@ -115,8 +124,8 @@ public class FragExchangeHelper {
 		} finally{
 			if(success && tmp0.length() > 0){ // Hacky way to avoid 0 byte file
 				// update directory
-				MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
-				directory.addFileFragment(header.getCreatedTime(), header.getFragIndex());
+				MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
+				directory.addFileFragment(header.getCreatedTime(), header.getFragIndex(),ServiceHelper.getInstance().getMyNode().getNodeId());
 			}
 			else if(tmp0 != null)
 				tmp0.delete();
@@ -134,8 +143,8 @@ public class FragExchangeHelper {
 			fileFrag.delete();
 			data.close();
 			// Update directory
-			MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
-			directory.removeFileFragment(header.getCreatedTime());
+			MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
+			directory.removeFileFragment(header.getCreatedTime(),ServiceHelper.getInstance().getMyNode().getNodeId());
 			return;
 		}
 		

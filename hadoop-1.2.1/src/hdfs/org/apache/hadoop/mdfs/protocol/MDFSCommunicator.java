@@ -14,6 +14,8 @@ import edu.tamu.lenss.mdfs.MDFSFileRetriever.FileRetrieverListener;
 import edu.tamu.lenss.mdfs.comm.ServiceHelper;
 import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 
+import org.apache.commons.logging.*;
+
 
 class BlockOperation{
 	public String blockToOperate;
@@ -28,15 +30,17 @@ class BlockOperation{
 class ListOfBlocksOperation{
 	private LinkedList<BlockOperation> blocksOperation;
 	boolean valueSet =false;
+	public static final Log LOG = LogFactory.getLog(ListOfBlocksOperation.class);
+
 
 	ListOfBlocksOperation(){
 		blocksOperation = new LinkedList<BlockOperation>();
 	}
 
 	synchronized void addElem(BlockOperation blockOps){
-		System.out.println("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		LOG.info("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
 		blocksOperation.add(blockOps);
-		System.out.println("Size "+blocksOperation.size());
+		LOG.info("Size "+blocksOperation.size());
 		notify();
 
 	}
@@ -48,11 +52,11 @@ class ListOfBlocksOperation{
 				wait();
 				blockOps = blocksOperation.poll();
 			}
-			System.out.println("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+			LOG.info("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
 		}  catch(InterruptedException e) {
 			System.out.println("InterruptedException caught");
 		}
-		System.out.println("Size "+blocksOperation.size());
+		LOG.info("Size "+blocksOperation.size());
 		return blockOps;
 	}
 
@@ -66,7 +70,7 @@ class ListOfBlocksOperation{
 		}
 		blocksOperation.add(blockOps);
 		valueSet=true;
-		System.out.println("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		LOG.info("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
 		notify();
 
 	}
@@ -81,7 +85,7 @@ class ListOfBlocksOperation{
 		}
 		BlockOperation blockOps = blocksOperation.poll();
 		valueSet=false;
-		System.out.println("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		LOG.info("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
 		notify();
 		return blockOps;
 
@@ -98,13 +102,15 @@ class MDFSCommunicator implements Runnable{
 	static boolean isComplete=false;
 	static boolean isSuccess=true;
 	static final int MAXRETRY = 5;
+	static String requested_file=""; 
+	public static final Log LOG = LogFactory.getLog(MDFSCommunicator.class);
 
 
 	MDFSCommunicator(ListOfBlocksOperation list,boolean newThread){
 		ll =list;
 		if(newThread){
 			t= new Thread(this,"MDFS Communication Thread");
-			System.out.println(" MDFS Communication Thread Started ");
+			LOG.info(" MDFS Communication Thread Started ");
 			t.start();
 		}
 	}
@@ -151,8 +157,7 @@ class MDFSCommunicator implements Runnable{
 
 
 	public boolean sendBlockOperation(BlockOperation blockOps) {
-		System.out.println(" Send Block Operations to Network");
-		System.out.println("Block Operation Elem "+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+		LOG.info("Send block Operation to Network: Elem "+blockOps.blockToOperate + " Operation "+ blockOps.operation);
 		int maxRetry = MAXRETRY;
 		isSuccess=true;
 		//BlockOperation blockOps =ll.getElem();
@@ -177,7 +182,7 @@ class MDFSCommunicator implements Runnable{
 					fileComplete.await();
 				}
 				else{
-					System.out.println(" isComplete is already true.");
+					LOG.error("sendBlockOperation:: isComplete is already true.");
 				}
 			}
 			catch (InterruptedException e) {
@@ -194,8 +199,8 @@ class MDFSCommunicator implements Runnable{
 			}
 			else{
 				maxRetry--;
-				System.out.println(" Earlier execution for file "+blockOps.blockToOperate + " Operation "+ blockOps.operation+" is unsuccessful");
-				System.out.println(" No of retries left is "+maxRetry);
+				LOG.info(" Earlier execution for file "+blockOps.blockToOperate + " Operation "+ blockOps.operation+" is unsuccessful");
+				LOG.info(" No of retries left is "+maxRetry);
 			}
 		}
 		if(maxRetry == 0)
@@ -214,21 +219,20 @@ class MDFSCommunicator implements Runnable{
 	private static MDFSFileCreatorListener fileCreatorListener = new MDFSFileCreatorListener(){
 		@Override
 		public void statusUpdate(String status) {
-			System.out.println("Creation status update: " + status);
+			LOG.info("Creation status update: " + status);
 		}
 
 		@Override
 		public void onError(String error) {
-			System.err.println("Creation Error:     " + error);
+			LOG.error("Creation Error:     " + error);
 			lock.lock();
 			isSuccess =false;
-			System.out.println("File Creation Error. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
 					fileComplete.signal();
 				}else{
-					System.out.println(" isComplete is already true.");
+					LOG.error(" isComplete is already true.");
 				}
 			}
 			finally {
@@ -240,13 +244,13 @@ class MDFSCommunicator implements Runnable{
 		public void onComplete() {
 			lock.lock();
 			isSuccess =true;
-			System.out.println("File Creation Complete. ");
+			LOG.info("File Creation Complete. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
 					fileComplete.signal();
 				}else{
-					System.out.println(" isComplete is already true.");
+					LOG.error(" isComplete is already true.");
 				}
 			}
 			finally {
@@ -259,7 +263,8 @@ class MDFSCommunicator implements Runnable{
 
 	public static void retrieveFile(String fileName){
 		isComplete=false;
-		System.out.println(" Retrieve file "+fileName);
+		LOG.info(" Retrieve file "+fileName);
+		requested_file=fileName;
 		MDFSFileRetriever retriever = new MDFSFileRetriever(fileName, fileName.hashCode());
 		retriever.setListener(fileRetrieverListener);
 		retriever.start();
@@ -272,21 +277,20 @@ class MDFSCommunicator implements Runnable{
 	private static FileRetrieverListener fileRetrieverListener = new FileRetrieverListener(){
 		@Override
 		public void statusUpdate(String status) {
-			System.out.println("Retrieval status update: " + status);
+			LOG.info("Retrieval status update: " + status);
 		}
 
 		@Override
 		public void onError(String error) {
-			System.err.println("Retrieval Error:     " + error);
+			LOG.error("Retrieval Error:     " + error);
 			lock.lock();
 			isSuccess =false;
-			System.out.println("File Retrieval Error. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
 					fileComplete.signal();
 				}else{
-					System.out.println(" isComplete is already true.");
+					LOG.error(" isComplete is already true.");
 				}
 			}
 			finally {
@@ -295,16 +299,16 @@ class MDFSCommunicator implements Runnable{
 		}
 
 		@Override
-		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo) {
+		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo, String fileName) {
 			lock.lock();
 			isSuccess =true;
-			System.out.println("File Retrieval Complete. ");
 			try{
 				if(isComplete== false ){
 					isComplete=true;
 					fileComplete.signal();
+					LOG.info("File Retrieval Complete. "+fileName);
 				}else{
-					System.out.println(" isComplete is already true.");
+					LOG.error(" isComplete is already true.");
 				}
 			}
 			finally {

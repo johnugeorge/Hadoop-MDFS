@@ -35,12 +35,14 @@ import org.apache.hadoop.mdfs.io.BlockReader;
 import adhoc.etc.IOUtilities;
 import adhoc.etc.MyTextUtils;
 
+import org.apache.commons.logging.*;
 
 
 public class MDFSDataService implements MDFSDataProtocol{
 
 	private static MDFSDataService instance = null;
 
+	public static final Log LOG = LogFactory.getLog(MDFSDataService.class);
 	private ServiceHelper serviceHelper;
 	private int myNodeId;
 	private ListOfBlocksOperation ll;
@@ -65,6 +67,8 @@ public class MDFSDataService implements MDFSDataProtocol{
 	MDFSDataService(Configuration conf){
 		if (conf == null)
 			conf = new Configuration();
+		ServiceHelper.setConf(conf);
+		ServiceHelper.setStandAloneConf(false);
 		this.serviceHelper = ServiceHelper.getInstance();
 		this.myNodeId = serviceHelper.getMyNode().getNodeId();
 		ll=new ListOfBlocksOperation();
@@ -127,7 +131,7 @@ public class MDFSDataService implements MDFSDataProtocol{
 	}
 
 	public void notifyBlockAdded(String src,String actualBlockLoc,long blockId,long bufCount) throws IOException{
-		System.out.println("MDFSDataService: Adding a new file "+ actualBlockLoc);
+		LOG.info("MDFSDataService: Adding a new file "+ actualBlockLoc+" src "+src+" blockId "+blockId);
 		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"CREATE");		
 		if(newThreadforMDFSCommunicator){
 			//ll.addElem(blockOps);
@@ -138,12 +142,12 @@ public class MDFSDataService implements MDFSDataProtocol{
 			if(!ret)
 				throw new IOException(" Block Creation Failed");
 		}
-		System.out.println("MDFSDataService: New file added"+ actualBlockLoc);
+		LOG.info("MDFSDataService: New file added"+ actualBlockLoc);
 		//mdfsDir.notifyBlockAdded(src,blockId,bufCount);
 	}
 
 	public void retrieveBlock(String src,String actualBlockLoc,long blockId) throws IOException{
-		System.out.println("MDFSDataService: Retrieving  a  file "+ actualBlockLoc);
+		LOG.info("MDFSDataService: Retrieving  a  file "+ actualBlockLoc+" src "+src+" blockId "+blockId);
 		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"RETRIEVE");	
 		if(newThreadforMDFSCommunicator){
 			//ll.addElem(blockOps);
@@ -154,7 +158,8 @@ public class MDFSDataService implements MDFSDataProtocol{
 			if(!ret)
 				throw new IOException(" Block Retrieval Failed");
 		}
-		System.out.println("MDFSDataService: Retrieving file done "+ actualBlockLoc);
+		LOG.info("MDFSDataService: Retrieving file done "+ actualBlockLoc+" src "+src+" blockId "+blockId);
+
 	}
 
 

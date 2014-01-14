@@ -14,12 +14,15 @@ import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol;
 import org.apache.hadoop.mdfs.protocol.LocatedBlock;
 import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
 
+import org.apache.commons.logging.*;
 
 
 public class BlockReader{
 	FileInputStream dataIn;
 	String src;
 	MDFSNameProtocol namesystem;
+	public static final Log LOG = LogFactory.getLog(BlockReader.class);
+
 
 	BlockReader(MDFSNameProtocol namesystem,String actualFileName,long blockId,long startOffset) throws FileNotFoundException,IOException{
 		this(namesystem,blockId,actualFileName,startOffset,getBlockLocationInFS(actualFileName,blockId));
@@ -35,6 +38,7 @@ public class BlockReader{
 
 		if(!f.exists()){
 			System.out.println(" File to be read doesn't exist.Hence fetching the block "+fileName);
+			LOG.error(" File to be read doesn't exist.Hence fetching the block "+fileName);
 		}
 		else{
 			//while(true){
@@ -44,7 +48,9 @@ public class BlockReader{
 						found=true;
 						if(f.length() != b.getBlockSize()){
 							System.out.println(" File already exists for read, but lengths mismatch." +fileName);
+							LOG.error(" File already exists for read, but lengths mismatch." +fileName);
 							System.out.println(" Existing file size "+ f.length() + " Actual file size "+ b.getBlockSize());
+							LOG.error(" Existing file size "+ f.length() + " Actual file size "+ b.getBlockSize());
 							throw new FileNotFoundException();
 						}
 						break;
@@ -65,6 +71,7 @@ public class BlockReader{
 				//retry--;
 			//}
 			System.out.println(" Same file already exists for read  "+fileName);
+			LOG.error(" Same file already exists for read  "+fileName);
 
 		}
 

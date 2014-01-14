@@ -142,7 +142,7 @@ public class MDFSOutputStream extends OutputStream {
 
 	@Override
 	public synchronized void write(byte buf[], int off, int len) throws IOException {
-		System.out.println(" Write called with offset "+off+" length "+len);
+		//System.out.println(" Write called with offset "+off+" length "+len);
 		
 		byte[] array= new byte[len];
 		System.arraycopy(buf,off,array,0,len);
@@ -155,7 +155,7 @@ public class MDFSOutputStream extends OutputStream {
 
 	@Override
 	public synchronized void flush() throws IOException {
-		System.out.println("  flush ");
+		//System.out.println("  flush ");
 		flushBuffer();
 		bufCount=0;
 

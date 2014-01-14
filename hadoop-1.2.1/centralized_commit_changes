@@ -1,0 +1,2662 @@
+diff --git a/hadoop-1.2.1/src/core/org/apache/hadoop/io/SetWritable.java b/hadoop-1.2.1/src/core/org/apache/hadoop/io/SetWritable.java
+new file mode 100644
+index 0000000..929bcf1
+--- /dev/null
++++ b/hadoop-1.2.1/src/core/org/apache/hadoop/io/SetWritable.java
+@@ -0,0 +1,97 @@
++package org.apache.hadoop.io;
++
++import java.io.DataInput;
++import java.io.DataOutput;
++import java.io.IOException;
++import java.util.HashSet;
++import java.util.Set;
++ 
++import org.apache.hadoop.io.WritableComparable;
++
++import org.apache.hadoop.io.Writable;
++import org.apache.hadoop.io.WritableFactories;
++import org.apache.hadoop.io.WritableFactory;
++
++/**
++ * 
++ * @author amar
++ */
++public class SetWritable implements Writable {
++
++	static {                                      // register a ctor
++		WritableFactories.setFactory
++			(SetWritable.class,
++			 new WritableFactory() {
++				 public Writable newInstance() { return new SetWritable(); }
++			 });
++	}
++
++	private Set<Integer> itemSet;
++
++	/**
++	 * Constructor.
++	 */
++	public SetWritable() {
++
++	}
++
++	/**
++	 * Constructor.
++	 * 
++	 * @param itemSet
++	 */
++	public SetWritable(Set<Integer> itemSet) {
++
++		this.itemSet = itemSet;
++	}
++
++	public String toString() {
++
++		return itemSet.toString();
++	}
++
++	public int size() {
++
++		return itemSet.size();
++	}
++
++	public void readFields(DataInput in) throws IOException {
++
++		// First clear the set. Otherwise we will just accumulate
++		// entries every time this method is called.
++		if (this.itemSet != null) {
++			this.itemSet.clear();
++		} else {
++			this.itemSet = new HashSet<Integer>();
++		}
++		int count = in.readInt();
++		while (count-- > 0) {
++			itemSet.add(in.readInt());
++		}
++	}
++
++	public void write(DataOutput out) throws IOException {
++
++		out.writeInt(itemSet.size());
++		for (int item : itemSet) {
++			out.writeInt(item);
++		}
++	}
++
++
++
++	/**
++	 * Gets the itemSet.
++	 * 
++	 * @return itemSet.
++	 */
++	public Set<Integer> getItemSet() {
++
++		return itemSet;
++	}
++
++	public void setItemSet(Set<Integer> itemSet) {
++
++		this.itemSet = itemSet;
++	}
++}
+diff --git a/hadoop-1.2.1/src/examples/org/apache/hadoop/examples/WordCount.java b/hadoop-1.2.1/src/examples/org/apache/hadoop/examples/WordCount.java
+index 0860305..9436607 100644
+--- a/hadoop-1.2.1/src/examples/org/apache/hadoop/examples/WordCount.java
++++ b/hadoop-1.2.1/src/examples/org/apache/hadoop/examples/WordCount.java
+@@ -66,10 +66,10 @@ public class WordCount {
+   public static void main(String[] args) throws Exception {
+     Configuration conf = new Configuration();
+     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+-    if (otherArgs.length != 2) {
+-      System.err.println("Usage: wordcount <in> <out>");
+-      System.exit(2);
+-    }
++    //if (otherArgs.length != 2) {
++    //  System.err.println("Usage: wordcount <in> <out>");
++    //  System.exit(2);
++    //}
+     Job job = new Job(conf, "word count");
+     job.setJarByClass(WordCount.class);
+     job.setMapperClass(TokenizerMapper.class);
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Node.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Node.java
+index a33bbb2..f6411c4 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Node.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Node.java
+@@ -263,6 +263,7 @@ public class Node extends Observable {
+ 	 * @param data the actual data which the application message contained
+ 	 */
+ 	protected void notifyAboutDataReceived(int senderNodeAddess, UserDataPacket packet) {
++		//System.out.print("Received data type "+packet.getData().getPacketType()+" from Node "+senderNodeAddess);
+ 		messagesForObservers.add(new AODVDataToObserver(ObserverConst.AODV_DATA_CONTAINER, packet.getData()));
+ 		wakeNotifierThread();
+ 	}
+@@ -275,7 +276,7 @@ public class Node extends Observable {
+ 	 */
+ 	protected void notifyAboutDataReceived(int senderNodeAddess, AODVDataContainer data) {	
+ 		 messagesForObservers.add(new AODVDataToObserver(ObserverConst.AODV_DATA_CONTAINER, data));
+-		 Logger.i(TAG, "Packet type " + data.getPacketType() + " is added to messagesForObservers");
++		 //Logger.i(TAG, "Packet type " + data.getPacketType() + " is added to messagesForObservers");
+ 		 wakeNotifierThread();
+ 	}
+ 	
+@@ -456,8 +457,9 @@ public class Node extends Observable {
+ 						}
+ 					}
+ 					setChanged();
+-					notifyObservers(messagesForObservers.poll());
+-					Logger.i(TAG, "Packet  is sent to Observer");
++					MessageToObserver tmp=messagesForObservers.poll();
++					notifyObservers(tmp);
++					//Logger.i(TAG, "Packet  is sent to Observer" + tmp.getMessageType());
+ 				}catch (InterruptedException e) {
+ 					// thread stopped
+ 				}
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Receiver.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Receiver.java
+index 8dfb9e0..7cb8ce7 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Receiver.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Receiver.java
+@@ -90,7 +90,7 @@ public class Receiver implements Runnable {
+ 			str.append(msg.getType() + ", " + nodeAddress + ", " + msg.getSender());
+ 			str.append("\n");
+ 			//dataLogger.appendSensorData(LogFileName.PACKET_RECEIVED, str.toString());
+-			
++			//System.out.println(" MEssage Recieved in Receiver "+str);
+ 			switch (msg.getType()) {
+ 			case Constants.HELLO_PDU:
+ 				HelloPacket hello = HelloPacket.parseFromByteArray(msg.data, HelloPacket.class);
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Sender.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Sender.java
+index baab90c..9c00087 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Sender.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/aodv/Sender.java
+@@ -57,7 +57,7 @@ public class Sender implements Runnable{
+     
+     public void startThread(){
+     	keepRunning = true;
+-    	startHelloBroadcast();
++	//startHelloBroadcast();
+     	senderThread = new Thread(this, Sender.class.getSimpleName());
+     	senderThread.start();
+     }
+@@ -96,7 +96,8 @@ public class Sender implements Runnable{
+ 	    			str.append("userdata, " + userData.getUserDataType() + ", ");
+ 	    			str.append(parent.getNodeId() + ", " + userData.getDestinationAddress() + ", ");
+ 	    			str.append(userData.getHopCount());
+-	    			str.append("\n");
++	    			str.append("\n\n\n\n");
++	    			//System.out.println(" UserData Packet "+str);
+ 	    			//dataLogger.appendSensorData(LogFileName.PACKET_SENT, str.toString());
+ 	    			
+ 	    			try{
+@@ -446,7 +447,7 @@ public class Sender implements Runnable{
+     
+     protected void queueUserMessageFromNode(UserDataPacket userPacket){
+     	userMessagesFromNode.add(userPacket);
+-    	Logger.v(TAG, "New User Message is queued");
++    	//Logger.v(TAG, "New User Message is queued. Type: " + userPacket.getData().getPacketType());
+     	synchronized (queueLock) {
+     		queueLock.notify();
+ 		}
+@@ -466,6 +467,7 @@ public class Sender implements Runnable{
+ 		}
+     }*/
+     
++    
+     /**
+      * Removes every message from the user packet queue that matches the given destination
+      * @param destinationAddress the destination which to look for
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/tcp/TCPSend.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/tcp/TCPSend.java
+index 3030aac..3f0bf35 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/tcp/TCPSend.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/tcp/TCPSend.java
+@@ -47,7 +47,7 @@ public class TCPSend {
+ 		}*/
+ 		nextHopIp = destIp;
+ 		try{
+-			Logger.v(TAG, "Connecting to " + nextHopIp + "...");
++			//Logger.v(TAG, "Connecting to " + nextHopIp + "...");
+ 			tcpSocket = new Socket(nextHopIp, destPort);
+ 			Logger.v(TAG, "Connected with " + nextHopIp);
+ 			
+@@ -106,7 +106,7 @@ public class TCPSend {
+ 			packet.getStatus()==TCPPacketType.RouteEstablished &&
+ 			packet.getSourceIP().equalsIgnoreCase(destIp)){
+ 			
+-			Logger.v(TAG, "Packet verified!!!!");
++			//Logger.v(TAG, "Packet verified!!!!");
+ 			return true;
+ 		}
+ 		else{
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpReceiver.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpReceiver.java
+index 5e1ffda..d92e5b0 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpReceiver.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpReceiver.java
+@@ -74,7 +74,7 @@ public class UdpReceiver implements Runnable {
+ 		while (keepRunning) {
+ 			try {
+ 				Socket socket = tcpSocket.accept();
+-				Logger.v(TAG, "Receive Connection from " + socket.getRemoteSocketAddress());
++				//Logger.v(TAG, "Receive Connection from " + socket.getRemoteSocketAddress());
+ 				pool.execute(new TcpPacketReceiver(socket));
+ 				
+ 			} catch (IOException e) {
+@@ -174,7 +174,7 @@ public class UdpReceiver implements Runnable {
+ 					
+ 					System.arraycopy(brodcastReceivePacket.getData(), 0, bdResult, 0, brodcastReceivePacket.getData().length);	// brodcastReceivePacket.getLength()
+ 
+-					Logger.v(TAG, "Receive Broadcast of " + brodcastReceivePacket.getSocketAddress());
++					//Logger.v(TAG, "Receive Broadcast of " + brodcastReceivePacket.getSocketAddress());
+ 
+ 					parent.addMessage(bdNodeId, bdResult);
+ 				} catch (IOException e) {
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpSender.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpSender.java
+index ceb0a75..008474e 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpSender.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/aodv/adhoc/udp/UdpSender.java
+@@ -45,13 +45,13 @@ public class UdpSender {
+ 	 * @throws IOException 
+ 	 * @throws SizeLimitExceededException is thrown if the length of the data to be sent exceeds the limit
+ 	 */
+-	private InetAddress IPAddress;
++	//private InetAddress IPAddress;
+ 	private byte[] data = new byte[Constants.UDP_MAX_PACKAGE_SIZE];
+-	private DatagramPacket sendPacket = new DatagramPacket(data, data.length, IPAddress, receiverPort + 1);
++	private DatagramPacket sendPacket = new DatagramPacket(data,data.length);
+ 	
+ 	public boolean sendPacket(int destinationNodeID, final byte[] data) throws IOException, DataExceedsMaxSizeException {
+ 		if (data.length <= Constants.UDP_MAX_PACKAGE_SIZE) {
+-			IPAddress = InetAddress.getByName(subNet+ destinationNodeID);
++			final InetAddress IPAddress = InetAddress.getByName(subNet+ destinationNodeID);
+ 			// do we have a packet to be broadcasted?
+ 			
+ 			if (destinationNodeID == Constants.BROADCAST_ADDRESS) {
+@@ -63,29 +63,7 @@ public class UdpSender {
+ 				datagramSocket.send(sendPacket);
+ 			} else {
+ 				// Hack! Use TCP instead of UDP
+-				pool.execute(new Runnable(){
+-					@Override
+-					public void run() {
+-						Socket tcpSocket=null;
+-						try {
+-							tcpSocket = new Socket(IPAddress, receiverPort);
+-							//Logger.v(TAG, "Start TCP Connection Established");
+-							tcpSocket.getOutputStream().write(data);
+-						} catch (IOException e) {
+-							e.printStackTrace();
+-						} finally{
+-							if(tcpSocket != null){
+-								try {
+-									tcpSocket.getOutputStream().flush();
+-									tcpSocket.close();
+-								} catch (IOException e) {
+-									e.printStackTrace();
+-								}
+-							}
+-						}
+-						Logger.v(TAG, "data of length: " + data.length + " bytes is sent to "	+ IPAddress);
+-					}
+-				});
++				pool.execute(new UdpPacketRunnable(destinationNodeID, data));
+ 			}
+ 			return true;
+ 		} else {
+@@ -93,6 +71,43 @@ public class UdpSender {
+ 		}
+ 	}
+ 	
++	private class UdpPacketRunnable implements Runnable{
++		private int destinationNodeID;
++		private byte[] data;
++		
++		public UdpPacketRunnable(int destinationNodeIDIn, final byte[] dataIn){
++			this.destinationNodeID = destinationNodeIDIn;
++			this.data = dataIn;
++		}
++		@Override
++		public void run() {
++			Socket tcpSocket=null;
++			try {
++				InetAddress IPAddress = InetAddress.getByName(subNet+ destinationNodeID);
++				tcpSocket = new Socket(IPAddress, receiverPort);
++				//Logger.v(TAG, "Start TCP Connection Established");
++				tcpSocket.getOutputStream().write(data);
++			} catch (IOException e) {
++				e.printStackTrace();
++				Logger.v(TAG, " Error in TCPSocket  in UDPSender when write");
++
++			} finally{
++				if(tcpSocket != null){
++					try {
++						tcpSocket.getOutputStream().flush();
++						tcpSocket.close();
++						Logger.v(TAG, "data of length: " + data.length + " bytes is sent to "	+ tcpSocket.getInetAddress().getHostAddress());
++					} catch (IOException e) {
++						e.printStackTrace();
++						Logger.v(TAG, " Error in TCPSocket  in UDPSender when close");
++					}
++				}
++			}
++			
++		}
++		
++	}
++	
+ 	public void closeSoket(){
+ 		if(!datagramSocket.isClosed())
+ 			datagramSocket.close();
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FileRequestHandler.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FileRequestHandler.java
+index 3141278..b7d11af 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FileRequestHandler.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FileRequestHandler.java
+@@ -13,6 +13,8 @@ import edu.tamu.lenss.mdfs.models.FileREQ;
+ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+ 
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++
+ public class FileRequestHandler {
+ 	private ServiceHelper serviceHelper;
+ 	
+@@ -28,13 +30,13 @@ public class FileRequestHandler {
+ 	 */
+ 	public void processRequest(FileREQ fileReq){
+ 		serviceHelper = ServiceHelper.getInstance();
+-		MDFSDirectory directory = serviceHelper.getDirectory();
++		MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
+ 		
+ 		FileREP reply = new FileREP(fileReq.getFileName(), fileReq.getFileCreatedTime(),
+ 				serviceHelper.getMyNode().getNodeId(), fileReq.getSource());
+ 		
+-		Set<Integer> fileSet = directory.getStoredFileIndex(fileReq.getFileCreatedTime());
+-		int storedKeyIdx = directory.getStoredKeyIndex(fileReq.getFileCreatedTime());
++		Set<Integer> fileSet = directory.getStoredFileIndex(fileReq.getFileCreatedTime(),serviceHelper.getMyNode().getNodeId()).getItemSet();
++		int storedKeyIdx = directory.getStoredKeyIndex(fileReq.getFileCreatedTime(),serviceHelper.getMyNode().getNodeId());
+ 		
+ 		// Reply with whatever fragments I have
+ 		if(fileReq.isAnyAvailable()){
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FragExchangeHelper.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FragExchangeHelper.java
+index 2ec58ba..4bd626e 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FragExchangeHelper.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/FragExchangeHelper.java
+@@ -22,6 +22,9 @@ import edu.tamu.lenss.mdfs.models.KeyFragPacket;
+ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+ 
++
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++
+ /**
+  * All functions in this class are blocking calls. Need to be handled in Thread
+  * @author Jay
+@@ -38,6 +41,7 @@ public class FragExchangeHelper {
+ 	public void downloadKeyFragment(final KeyFragPacket keyPacket){
+ 		KeyShareInfo key = keyPacket.getKeyShareInfo();
+ 		String fileDirName = MDFSFileInfo.getDirName(keyPacket.getFileName(), keyPacket.getCreatedTime());
++
+ 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + fileDirName);
+ 		int tialCnt = 0;
+ 		while(!tmp0.exists() && !tmp0.mkdirs()){
+@@ -55,13 +59,18 @@ public class FragExchangeHelper {
+ 				key.getFileName()+"__key__" + key.getIndex());
+ 		
+ 		if(tmp0.exists() && tmp0.length() > 0){	// We send KeyFragment multiple times....hacky way to fix things
++			Logger.v(TAG, "Returning as file already exists");
+ 			return;
+ 		}
+ 		
+ 		if(IOUtilities.writeObjectToFile(key, tmp0)){
+ 			// Update Directory
+-			MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+-			directory.addKeyFragment(keyPacket.getCreatedTime(), key.getIndex());
++			MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
++			directory.addKeyFragment(keyPacket.getCreatedTime(), key.getIndex(),ServiceHelper.getInstance().getMyNode().getNodeId());
++		}
++		else{
++
++			Logger.v(TAG, " Creating key Failure");
+ 		}
+ 	}
+ 	
+@@ -115,8 +124,8 @@ public class FragExchangeHelper {
+ 		} finally{
+ 			if(success && tmp0.length() > 0){ // Hacky way to avoid 0 byte file
+ 				// update directory
+-				MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+-				directory.addFileFragment(header.getCreatedTime(), header.getFragIndex());
++				MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
++				directory.addFileFragment(header.getCreatedTime(), header.getFragIndex(),ServiceHelper.getInstance().getMyNode().getNodeId());
+ 			}
+ 			else if(tmp0 != null)
+ 				tmp0.delete();
+@@ -134,8 +143,8 @@ public class FragExchangeHelper {
+ 			fileFrag.delete();
+ 			data.close();
+ 			// Update directory
+-			MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+-			directory.removeFileFragment(header.getCreatedTime());
++			MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
++			directory.removeFileFragment(header.getCreatedTime(),ServiceHelper.getInstance().getMyNode().getNodeId());
+ 			return;
+ 		}
+ 		
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSDirectory.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSDirectory.java
+index 125410d..371c282 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSDirectory.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSDirectory.java
+@@ -23,40 +23,57 @@ import adhoc.etc.Logger;
+ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+ 
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++import org.apache.hadoop.io.SetWritable;
++import org.apache.hadoop.mdfs.protocol.MDFSInfoList;
++
++
++
++
++
+ /**
+  * This class track the current status of MDFS File System. <br>
+  * Available files in the network, local available files, or local available fragments...
+  * @author Jay
+  *
+  */
+-public class MDFSDirectory implements Serializable {
++public class MDFSDirectory implements Serializable,MDFSDirectoryProtocol {
+ 	private static final String TAG = MDFSDirectory.class.getSimpleName();
+ 	private static final long serialVersionUID = 1L;
+ 	private Map<Long, MDFSFileInfo> fileMap;	// Use File Creation Time as the key now. Should use UUID
+ 	private Map<String, Long> nameToKeyMap;		// Used to map from file name to file ID(createdTime)
+ 	
+-	private Map<Long, Integer> keyFragMap;		// Used to map from fileId to key fragment#
+-	private Map<Long, Set<Integer>> fileFragMap; // Used to map from fileId to file fragment#
++	private Map<Long, Map<Integer,Integer>> keyFragMap;		// Used to map from fileId to key fragment#
++	private Map<Long, Map<Integer,Set<Integer>>> fileFragMap; // Used to map from fileId to file fragment#
+ 	private Set<Long> encryptedFileSet;			// A set of files that have been combined, but encrypted.
+ 	private Set<Long> decryptedFileSet;			// A set of files that have been decrypted temporarily
+ 	
+ 	public MDFSDirectory(){
+ 		fileMap = new HashMap<Long, MDFSFileInfo>();
+ 		nameToKeyMap = new HashMap<String, Long>();
+-		keyFragMap = new HashMap<Long, Integer>();
+-		fileFragMap = new HashMap<Long, Set<Integer>>();
++		keyFragMap = new HashMap<Long, Map<Integer,Integer>>();
++		fileFragMap = new HashMap<Long, Map<Integer,Set<Integer>>>();
+ 		encryptedFileSet = new HashSet<Long>();
+ 		decryptedFileSet = new HashSet<Long>();
+ 	}
+-	
++
++
++	public long getProtocolVersion(String protocol,
++			long clientVersion) throws IOException {
++		return serialVersionUID;
++	}
++
++
+ 	/**
+ 	 * Return null if the fileId does not exist in the directory
+ 	 * @param fileId
+ 	 * @return
+ 	 */
+ 	public MDFSFileInfo getFileInfo(long fileId){
++		//Logger.v(TAG," getFileInfo "+fileId+" fileMap size "+fileMap.size());
+ 		return fileMap.get(fileId);
+ 	}
++
+ 	public MDFSFileInfo getFileInfo(String fName){
+ 		Long fileId = nameToKeyMap.get(fName);
+ 		if(fileId != null)
+@@ -69,13 +86,13 @@ public class MDFSDirectory implements Serializable {
+ 	/**
+ 	 * @return	A List of all available files. The List may be empty
+ 	 */
+-	public List<MDFSFileInfo> getFileList(){
++	public MDFSInfoList getFileList(){
+ 		List<MDFSFileInfo> list;
+ 		if(!fileMap.isEmpty())
+ 			 list = new ArrayList<MDFSFileInfo>(fileMap.values());
+ 		else
+ 			list = new ArrayList<MDFSFileInfo>();;
+-		return list;
++		return (new MDFSInfoList(list));
+ 	}
+ 	
+ 	/**
+@@ -94,17 +111,27 @@ public class MDFSDirectory implements Serializable {
+ 	 * @param fileId
+ 	 * @return -1 if there is no key fragment available
+ 	 */
+-	public int getStoredKeyIndex(long fileId){
+-		Integer idx = keyFragMap.get(fileId);
+-		if(idx != null)
+-			return idx;
++	public int getStoredKeyIndex(long fileId,int creator){
++		//Logger.v(TAG," getStoredKeyIndex "+fileId+" "+creator);
++		Map<Integer,Integer> idx = keyFragMap.get(fileId);
++		if(idx != null){
++			if(idx.get(creator) != null){
++				//Logger.v(TAG," getStoredKeyIndex "+fileId+" "+creator+" Returning "+idx.get(creator));
++				return idx.get(creator);
++			}
++			else
++				return -1;
++		}
+ 		else
+ 			return -1;
+ 	}
+-	public int getStoredKeyIndex(String fName){
++	public int getStoredKeyIndex(String fName, int creator){
++		//Logger.v(TAG," getStoredKeyIndex "+fName+" "+creator);
+ 		Long fileId = nameToKeyMap.get(fName);
+-		if(fileId != null)
+-			return getStoredKeyIndex(fileId);
++		if(fileId != null){
++			//Logger.v(TAG," getStoredKeyIndex Name "+fName+" "+creator+" Returning "+getStoredKeyIndex(fileId,creator));
++			return getStoredKeyIndex(fileId,creator);
++		}
+ 		else
+ 			return -1;
+ 	}
+@@ -113,19 +140,49 @@ public class MDFSDirectory implements Serializable {
+ 	 * @param fileId
+ 	 * @return	null if there is no file fragment avaiable
+ 	 */
+-	public Set<Integer> getStoredFileIndex(long fileId){
+-		return fileFragMap.get(fileId);
++	public SetWritable getStoredFileIndex(long fileId,int creator){
++		Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
++		//Logger.v(TAG," getStoredFileIndex "+fileId+" "+creator);
++		if(mp != null){
++			if(fileFragMap.get(fileId).get(creator) != null){
++				//Logger.v(TAG," getStoredFileIndex "+fileId+" "+creator+" Returning "+fileFragMap.get(fileId).get(creator));
++				return (new SetWritable(fileFragMap.get(fileId).get(creator)));
++			}
++			else{
++				return (new SetWritable(new HashSet<Integer>()));
++			}
++		}
++		else
++			return (new SetWritable(new HashSet<Integer>()));
+ 	}
+-	public Set<Integer> getStoredFileIndex(String fName){
++
++	public SetWritable getStoredFileIndex(String fName,int creator){
++		//Logger.v(TAG," getStoredFileIndex "+fName+" "+creator);
+ 		Long fileId = nameToKeyMap.get(fName);
+ 		if(fileId != null)
+-			return fileFragMap.get(fileId);
++		{
++			Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
++			if(mp != null){
++				if(fileFragMap.get(fileId).get(creator) != null){
++					 //Logger.v(TAG," getStoredFileIndex  "+fileId+" "+creator+" Returning "+fileFragMap.get(fileId).get(creator));
++					return (new SetWritable(fileFragMap.get(fileId).get(creator)));
++				}
++				else{
++					return (new SetWritable(new HashSet<Integer>()));
++				}
++
++			}
++			else
++				return (new SetWritable(new HashSet<Integer>()));
++
++		}
+ 		else
+-			return null;
++			return (new SetWritable(new HashSet<Integer>()));
+ 	}
+ 	
+ 	
+ 	public void addFile(MDFSFileInfo file){
++		Logger.v(TAG," Adding File Id"+file.getCreatedTime()+" fileMap size "+fileMap.size());
+ 		if(fileMap.containsKey(file.getCreatedTime())){
+ 			MDFSFileInfo tmp= fileMap.get(file.getCreatedTime());
+ 			if(!tmp.getFileName().equals(file.getFileName())){
+@@ -149,6 +206,7 @@ public class MDFSDirectory implements Serializable {
+ 	 * @param fileId
+ 	 */
+ 	public void removeFile(long fileId){
++		Logger.v(TAG," Removing File Id"+fileId+" fileMap size "+fileMap.size());
+ 		if(fileMap.containsKey(fileId)){
+ 			String name = fileMap.get(fileId).getFileName();
+ 			nameToKeyMap.remove(name);
+@@ -156,32 +214,89 @@ public class MDFSDirectory implements Serializable {
+ 		fileMap.remove(fileId);
+ 	}
+ 	
+-	public void addKeyFragment(long fileId, int keyIndex){
+-		keyFragMap.put(fileId, keyIndex);
++	public void addKeyFragment(long fileId, int keyIndex,int creator){
++		//Logger.v(TAG," store Key Index "+fileId+" "+keyIndex+" "+creator);
++
++		if(keyFragMap.containsKey(fileId)){
++			Map<Integer,Integer> mp = keyFragMap.get(fileId);
++			if(mp != null){
++				Integer key = keyFragMap.get(fileId).get(creator);
++				if(key != null){
++					Logger.v(TAG," Error. Key index is added again for same node");
++				}
++				else{
++					keyFragMap.get(fileId).put(creator,keyIndex);
++
++				}
++
++			}
++		}
++		else{
++			Map<Integer,Integer> mp = new HashMap<Integer,Integer>();
++			mp.put(creator,keyIndex);
++			keyFragMap.put(fileId, mp);
++		}
++
++
+ 	}
+-	public void addKeyFragment(String fileName, int keyIndex){
++
++	public void addKeyFragment(String fileName, int keyIndex,int creator){
++		//Logger.v(TAG," store Key Index string "+fileName+" "+keyIndex+" "+creator);
+ 		Long fileId = nameToKeyMap.get(fileName);
+ 		if(fileId != null )
+-			keyFragMap.put(fileId, keyIndex);
++			addKeyFragment(fileId,keyIndex,creator);
++	}
++
++	public void replaceKeyFragment(long src,long dst){
++		Map<Integer,Integer> mp=keyFragMap.get(src);
++		keyFragMap.remove(src);
++		keyFragMap.put(dst,mp);
++
+ 	}
+ 	
+-	public void removeKeyFragment(long fileId){
+-		keyFragMap.remove(fileId);
++	public void replaceFileFragment(long src,long dst){
++		Map<Integer,Set<Integer>> mp=fileFragMap.get(src);
++		fileFragMap.remove(src);
++		fileFragMap.put(dst,mp);
++
++	}
++
++	public void removeKeyFragment(long fileId,int creator){
++		//Logger.v(TAG," remove key fragment "+fileId+" "+creator);
++		keyFragMap.get(fileId).remove(creator);
+ 	}
+-	public void removeKeyFragment(String fileName){
++	public void removeKeyFragment(String fileName,int creator){
++		//Logger.v(TAG," remove key  Fragment "+fileName+" "+creator);
+ 		Long fileId = nameToKeyMap.get(fileName);
+ 		if(fileId != null )
+-			keyFragMap.remove(fileId);
++			keyFragMap.get(fileId).remove(creator);
+ 	}
+-	
+-	public void addFileFragment(long fileId, int fileIndex){
++
++	public void addFileFragment(long fileId, int fileIndex,int creator){
++		//Logger.v(TAG," store file Index "+fileId+" "+fileIndex+" "+creator);
+ 		if(fileFragMap.containsKey(fileId)){
+-			fileFragMap.get(fileId).add(fileIndex);
++			Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
++			if(mp != null){
++				Set<Integer> fFrag = fileFragMap.get(fileId).get(creator);
++				if(fFrag != null){
++					fFrag.add(fileIndex);
++				}
++				else{
++					HashSet<Integer> frag = new HashSet<Integer>();
++					frag.add(fileIndex);
++					fileFragMap.get(fileId).put(creator,frag);
++
++
++				}
++
++			}
+ 		}
+ 		else{
+ 			HashSet<Integer> fFrag = new HashSet<Integer>();
+ 			fFrag.add(fileIndex);
+-			fileFragMap.put(fileId, fFrag);
++			Map<Integer,Set<Integer>> mp = new HashMap<Integer,Set<Integer>>();
++			mp.put(creator,fFrag);
++			fileFragMap.put(fileId, mp);
+ 		}
+ 	}
+ 	
+@@ -191,42 +306,66 @@ public class MDFSDirectory implements Serializable {
+ 	 * @param fileName
+ 	 * @param fileIndex
+ 	 */
+-	public void addFileFragment(String fileName, int fileIndex){
++	public void addFileFragment(String fileName, int fileIndex,int creator){
++		//Logger.v(TAG," store file Index "+fileName+" "+fileIndex+" "+creator);
+ 		Long fileId = nameToKeyMap.get(fileName);
+ 		if(fileId == null )
+ 			return;
+-		addFileFragment(fileId, fileIndex);
++		addFileFragment(fileId, fileIndex,creator);
+ 	}
+-	
+-	public void addFileFragment(long fileId, Set<Integer> fileIndex){
++
++	public void addFileFragment(long fileId, SetWritable fileIndex,int creator){
++		//Logger.v(TAG," store file Index "+fileId+" "+fileIndex.size()+" "+creator);
+ 		if(fileFragMap.containsKey(fileId)){
+-			fileFragMap.get(fileId).addAll(fileIndex);
++
++			Map<Integer,Set<Integer>> mp = fileFragMap.get(fileId);
++			if(mp != null){
++				Set<Integer> fFrag = fileFragMap.get(fileId).get(creator);
++				if(fFrag != null){
++					fFrag.addAll(fileIndex.getItemSet());
++				}
++				else{
++					HashSet<Integer> frag = new HashSet<Integer>();
++					frag.addAll(fileIndex.getItemSet());
++					fileFragMap.get(fileId).put(creator,frag);
++
++
++				}
++
++			}
++
+ 		}
+ 		else{
+ 			HashSet<Integer> fFrag = new HashSet<Integer>();
+-			fFrag.addAll(fileIndex);
+-			fileFragMap.put(fileId, fFrag);
++			fFrag.addAll(fileIndex.getItemSet());
++			Map<Integer,Set<Integer>> mp = new HashMap<Integer,Set<Integer>>();
++			mp.put(creator,fFrag);
++			fileFragMap.put(fileId, mp);
+ 		}
+ 	}
+-	public void addFileFragment(String fileName, Set<Integer> fileIndex){
++
++	public void addFileFragment(String fileName, SetWritable fileIndex,int creator){
++		//Logger.v(TAG," store file Index "+fileName+" "+fileIndex.size()+" "+creator);
+ 		Long fileId = nameToKeyMap.get(fileName);
+ 		if(fileId == null )
+ 			return;
+-		addFileFragment(fileId, fileIndex);
++		addFileFragment(fileId, fileIndex,creator);
+ 	}
+ 	
+-	public void removeFileFragment(long fileId){
+-		fileFragMap.remove(fileId);
++	public void removeFileFragment(long fileId,int creator){
++		//Logger.v(TAG," remove file Index "+fileId+" "+creator);
++		fileFragMap.get(fileId).remove(creator);
+ 	}
+ 	
+ 	/**
+ 	 * Remove ALL fragments of this file
+ 	 * @param fileName
+ 	 */
+-	public void removeFileFragment(String fileName){
++	public void removeFileFragment(String fileName,int creator){
++		//Logger.v(TAG," remove file Fragment "+fileName+" "+creator);
+ 		Long fileId = nameToKeyMap.get(fileName);
+ 		if(fileId != null )
+-			fileFragMap.remove(fileId);
++			fileFragMap.get(fileId).remove(creator);
+ 	}
+ 	
+ 	public void addEncryptedFile(long fileId){
+@@ -304,7 +443,7 @@ public class MDFSDirectory implements Serializable {
+ 	/**
+ 	 * Make sure the directory is synchronized with the physical files
+ 	 */
+-	public void syncLocal(){
++	public void syncLocal(int nodeId){
+ 		File rootDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT);
+ 		if(!rootDir.exists())
+ 			return;			// Don't need to sync at all
+@@ -345,10 +484,10 @@ public class MDFSDirectory implements Serializable {
+ 					try{
+ 						index = Integer.parseInt(fragName.substring(fragName.lastIndexOf("_")+1));
+ 						if(fragName.contains("__key__")){
+-							addKeyFragment(fileName, index);
++							addKeyFragment(fileName, index,nodeId);
+ 						}
+ 						else if (fragName.contains("__frag__")){
+-							addFileFragment(fileName, index);
++							addFileFragment(fileName, index,nodeId);
+ 						}
+ 					}
+ 					catch(NullPointerException e){
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileCreator.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileCreator.java
+index 97f3940..ef416bd 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileCreator.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileCreator.java
+@@ -39,6 +39,7 @@ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+ import edu.tamu.lenss.mdfs.utils.JCountDownTimer;
+ import edu.tamu.lenss.mdfs.Constants;
+ 
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
+ 
+ 
+ public class MDFSFileCreator {
+@@ -201,14 +202,14 @@ public class MDFSFileCreator {
+ 		File fragsDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/"
+ 				+ MDFSFileInfo.getDirName(fileName, fileInfo.getCreatedTime()));
+ 
+-		MDFSDirectory directory = serviceHelper.getDirectory();
++		MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
+ 		// Create file fragments
+ 		for (FragmentInfo frag : fragInfos) {
+ 			File tmp = IOUtilities.createNewFile(fragsDir, frag.getFileName()
+ 					+ "__frag__" + frag.getFragmentNumber());
+ 			if (IOUtilities.writeObjectToFile(frag, tmp)) {
+ 				directory.addFileFragment(fileInfo.getCreatedTime(),
+-						frag.getFragmentNumber());
++						frag.getFragmentNumber(),serviceHelper.getMyNode().getNodeId());
+ 			}
+ 		}
+ 		listener.statusUpdate("Encryption Complete");
+@@ -307,6 +308,7 @@ public class MDFSFileCreator {
+ 		for (KeyShareInfo key : keyShares) {
+ 			if (nodesIter != null && nodesIter.hasNext()) {
+ 				destNode = nodesIter.next();
++				//Logger.v(TAG, "Key Frag: destNode "+destNode+" my node id "+node.getNodeId());
+ 				if (destNode != node.getNodeId()) {
+ 					final KeyFragPacket packet = new KeyFragPacket(node.getNodeId(),
+ 							destNode, key, fileInfo.getCreatedTime());
+@@ -318,15 +320,18 @@ public class MDFSFileCreator {
+ 							// node.sendAODVDataContainer(packet);
+ 						}
+ 					});*/
++					//Logger.v(TAG, "Sending key packet to destNode "+destNode);
+ 					node.sendAODVDataContainer(packet);
++					//code till here
+ 				} else {
+ 					// Just store the key fragment locally.
++					//Logger.v(TAG, "Saving key packet locally");
+ 					File tmp = IOUtilities.createNewFile(fileFragDir,
+ 							key.getFileName() + "__key__" + key.getIndex());
+ 					if (IOUtilities.writeObjectToFile(key, tmp)) {
+-						MDFSDirectory directory = serviceHelper.getDirectory();
++						MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
+ 						directory.addKeyFragment(fileInfo.getCreatedTime(),
+-								key.getIndex());
++								key.getIndex(),serviceHelper.getMyNode().getNodeId());
+ 					}
+ 				}
+ 			}
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileRetriever.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileRetriever.java
+index 063c891..68f769b 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileRetriever.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/MDFSFileRetriever.java
+@@ -41,6 +41,8 @@ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+ import edu.tamu.lenss.mdfs.utils.JCountDownTimer;
+ 
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++
+ 
+ public class MDFSFileRetriever {
+ 	private static final String TAG = MDFSFileRetriever.class.getSimpleName();
+@@ -113,8 +115,8 @@ public class MDFSFileRetriever {
+ 			fileRetLog.discEnd = System.currentTimeMillis();
+ 			
+ 			// Cache the key fragment and retrieve the file fragments
+-			MDFSDirectory directory = serviceHelper.getDirectory();
+-			Set<Integer> myfiles = directory.getStoredFileIndex(fileId);	// Get the current file fragments I have
++			MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
++			Set<Integer> myfiles = directory.getStoredFileIndex(fileId,serviceHelper.getMyNode().getNodeId()).getItemSet();	// Get the current file fragments I have
+ 			if(myfiles == null)
+ 				myfiles = new HashSet<Integer>();	
+ 			Set<Integer> uniqueFile = new HashSet<Integer>();				// add all the available fragments, including mine an others  
+@@ -140,13 +142,13 @@ public class MDFSFileRetriever {
+ 			uniqueFile.addAll(myfiles);
+ 			
+ 			// Add My KeyShare.
+-			int keyIdx = directory.getStoredKeyIndex(fileId);
++			int keyIdx = directory.getStoredKeyIndex(fileId,serviceHelper.getMyNode().getNodeId());
+ 			if(keyIdx >= 0){
+ 				// add mine to keyShares
+ 				String dirName = MDFSFileInfo.getDirName(fileName,fileId);
+ 				String fName =  MDFSFileInfo.getShortFileName(fileName)+ "__key__" + keyIdx;
+ 				File f = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + dirName + "/" + fName);
+-				System.out.println(" FileName "+f.getAbsolutePath());
++				//System.out.println(" FileName "+f.getAbsolutePath());
+ 				KeyShareInfo key = IOUtilities.readObjectFromFile(f, KeyShareInfo.class);
+ 				keyShares.add(key);
+ 			}
+@@ -203,8 +205,10 @@ public class MDFSFileRetriever {
+ 		String fDirName = MDFSFileInfo.getDirName(fileName, fileId);
+ 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" +	fDirName );
+ 		if(!tmp0.exists()){
+-			tmp0.mkdirs();
+-			listener.onError("File IO Error. Can't save file locally");
++			if(!tmp0.mkdirs()){
++			    listener.onError("File IO Error. Can't save file locally");
++			    return;
++			}
+ 		}
+ 		
+ 		listener.statusUpdate("Downloading fragments");
+@@ -279,7 +283,7 @@ public class MDFSFileRetriever {
+ 		FragmentInfo frag;
+ 		// Don't use the fragment that may not finish downloading yet
+ 		Set<Integer> downloaded = 
+-			ServiceHelper.getInstance().getDirectory().getStoredFileIndex(fileId);
++			ServiceHelper.getInstance().getDirectory().getStoredFileIndex(fileId,serviceHelper.getMyNode().getNodeId()).getItemSet();
+ 		for (File f : files) {
+ 			if(f.getName().contains("__frag__")){
+ 				frag = IOUtilities.readObjectFromFile(f, FragmentInfo.class);
+@@ -305,7 +309,7 @@ public class MDFSFileRetriever {
+ 		}
+ 		fileRetLog.decryEnd = System.currentTimeMillis();
+ 		
+-		MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
++		MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
+ 		// save decrypted data as a file
+ 		byte [] fileBytes = decoder.getPlainBytes();
+ 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_DECRYPTED);
+@@ -315,7 +319,7 @@ public class MDFSFileRetriever {
+ 			fos.write(fileBytes, 0, fileBytes.length);
+ 			fos.close();
+ 			directory.addDecryptedFile(fileId);
+-			Logger.i(TAG, "File Decryption Complete");
++			Logger.i(TAG, "File Decryption Complete:Decrypted file loc "+tmp.getAbsolutePath());
+ 		} catch (FileNotFoundException e) {
+ 			e.printStackTrace();
+ 		} catch (IOException e) {
+@@ -333,6 +337,7 @@ public class MDFSFileRetriever {
+ 			fos.write(fileBytes, 0, fileBytes.length);
+ 			fos.close();
+ 			directory.addEncryptedFile(fileId);
++			Logger.i(TAG, "File Decryption Complete:Encrypted file loc "+tmp.getAbsolutePath());
+ 		} catch (FileNotFoundException e) {
+ 			e.printStackTrace();
+ 		} catch (IOException e) {
+@@ -342,7 +347,7 @@ public class MDFSFileRetriever {
+ 		}
+ 		
+ 		writeLog();
+-		listener.onComplete(tmp, fileInfo);
++		listener.onComplete(tmp, fileInfo,fileName);
+ 	}
+ 	
+ 	private void writeLog(){
+@@ -441,7 +446,7 @@ public class MDFSFileRetriever {
+ 				oos.writeObject(header);
+ 				
+ 				// Start to download and save the file fragment
+-				Logger.v(TAG, "Strat downloading frag " + fragmentIndex + " from " + destId);
++				Logger.v(TAG, "Start downloading frag " + fragmentIndex + " from " + destId);
+ 				String fDirName = MDFSFileInfo.getDirName(fileName,fileId);
+ 				String fName =  MDFSFileInfo.getShortFileName(fileName)+ "__frag__" + fragmentIndex;
+ 				//tmp0 = IOUtilities.getExternalFile(Constants.DIR_ROOT + "/" +	fDirName );
+@@ -469,8 +474,8 @@ public class MDFSFileRetriever {
+ 				timer.cancel();
+ 				if(success && tmp0.length() > 0){	// Hacky way to avoid 0 byte file
+ 					// update directory
+-					MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+-					directory.addFileFragment(header.getCreatedTime(), header.getFragIndex());
++					MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
++					directory.addFileFragment(header.getCreatedTime(), header.getFragIndex(),serviceHelper.getMyNode().getNodeId());
+ 					locFragCounter.incrementAndGet();
+ 				}
+ 				else if(tmp0 != null){ 
+@@ -482,6 +487,7 @@ public class MDFSFileRetriever {
+ 					//if(success && downloadCounter.decrementAndGet() <= 1){
+ 					if(locFragCounter.get() >= fileInfo.getK2()){ 	//success && 
+ 						decoding = true;
++						timer.cancel(); 
+ 						timer.onFinish();						
+ 					}
+ 					else
+@@ -507,7 +513,7 @@ public class MDFSFileRetriever {
+ 		public void onError(String error) {
+ 		}
+ 		@Override
+-		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo) {
++		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo,String fileName) {
+ 		}
+ 		@Override
+ 		public void statusUpdate(String status) {
+@@ -516,7 +522,7 @@ public class MDFSFileRetriever {
+ 	public interface FileRetrieverListener{
+ 		public void onError(String error);
+ 		public void statusUpdate(String status);
+-		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo);
++		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo,String fileName);
+ 	}
+ 	
+ 	private class FileRetrieveLog{
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/ScheduledTask.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/ScheduledTask.java
+index 278c62d..0d8e751 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/ScheduledTask.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/ScheduledTask.java
+@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
+ import edu.tamu.lenss.mdfs.comm.ServiceHelper;
+ 
+ public class ScheduledTask {
+-	private ScheduledThreadPoolExecutor taskExecutor = new ScheduledThreadPoolExecutor(1);
++	/*private ScheduledThreadPoolExecutor taskExecutor = new ScheduledThreadPoolExecutor(1);
+ 	public static final int NODEINFO_PERIOD = 45000;
+ 	public ScheduledTask(){
+ 		
+@@ -27,5 +27,5 @@ public class ScheduledTask {
+     			ServiceHelper.getInstance().broadcastMyDirectory();
+     		}
+     	}, 0, NODEINFO_PERIOD, TimeUnit.MILLISECONDS);
+-	}
++	}*/
+ }
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/DeleteFileHandler.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/DeleteFileHandler.java
+index fd79a23..2c93cc6 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/DeleteFileHandler.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/DeleteFileHandler.java
+@@ -7,25 +7,29 @@ import java.util.Set;
+ 
+ import adhoc.etc.IOUtilities;
+ import edu.tamu.lenss.mdfs.Constants;
+-import edu.tamu.lenss.mdfs.MDFSDirectory;
++//import edu.tamu.lenss.mdfs.MDFSDirectory;
+ import edu.tamu.lenss.mdfs.models.DeleteFile;
+ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+ 
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++
+ public class DeleteFileHandler {
+ 	
+ 	public DeleteFileHandler(){
+ 	}
+ 	
+-	public void processPacket(DeleteFile delete){
++	public void processPacket(DeleteFile delete,boolean local){
+ 		if(delete.getFileIds() == null || delete.getFileNames() == null){
++			System.out.println(" Delete: FileIds are empty");
+ 			return;
+ 		}
+ 		
+ 		if(delete.getFileIds().size() != delete.getFileNames().size()){
++			System.out.println(" Delete: FileIds "+delete.getFileIds().size()+" and FileName Size are different "+delete.getFileNames().size());
+ 			return;
+ 		}
+-		new DeleteFiileThread(delete.getFileNames(), delete.getFileIds()).start();
++		new DeleteFiileThread(delete.getFileNames(), delete.getFileIds(),local).start();
+ 	}
+ 	
+ 	protected void deleteFiles(Set<Long> mergeFileIds){
+@@ -42,23 +46,26 @@ public class DeleteFileHandler {
+ 		private Set<Long> fileIds;
+ 		private List<String> fNames; 
+ 		private List<Long> fIds;
++		private boolean local;
+ 		
+ 		private DeleteFiileThread(Set<Long> mergeFileIds){
+ 			fileIds = mergeFileIds;
+ 		}
+ 		
+ 
+-		private DeleteFiileThread(List<String> fNames, List<Long> fIds){
++		private DeleteFiileThread(List<String> fNames, List<Long> fIds,boolean local){
+ 			this.fIds = fIds;
+ 			this.fNames = fNames;
++			this.local=local;
+ 		}
+ 		
+ 		@Override
+ 		public void run() {
+ 			File rootDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT);
+-			if(!rootDir.exists())
++			if(!rootDir.exists()){
++				System.out.println(" Delete: Root Dir doesn't exist");
+ 				return;
+-			
++			}
+ 			String fName;
+ 			long fileId; 
+ 			for(int i=0; i<fIds.size(); i++){
+@@ -66,12 +73,14 @@ public class DeleteFileHandler {
+ 				fName = fNames.get(i);
+ 				
+ 				// Clean up the MDFSDirectory
+-				MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+-				directory.removeDecryptedFile(fileId);
+-				directory.removeEncryptedFile(fileId);
+-				directory.removeFile(fileId);
+-				directory.removeFileFragment(fileId);
+-				directory.removeKeyFragment(fileId);
++				if(local){
++					MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
++					directory.removeDecryptedFile(fileId);
++					directory.removeEncryptedFile(fileId);
++					directory.removeFile(fileId);
++					directory.removeFileFragment(fileId,ServiceHelper.getInstance().getMyNode().getNodeId());
++					directory.removeKeyFragment(fileId,ServiceHelper.getInstance().getMyNode().getNodeId());
++				}
+ 				
+ 				// Remove Encrypted File
+ 				File file = new File(rootDir, "encrypted/" + MDFSFileInfo.getDirName(fName, fileId));
+@@ -87,11 +96,13 @@ public class DeleteFileHandler {
+ 				File fileDir = new File(rootDir, MDFSFileInfo.getDirName(fName, fileId));
+ 				System.out.println(" File  to be deleted "+fileDir.getName());
+ 					
+-				try {
+-					IOUtilities.cleanCache(fileDir, 0);
+-					fileDir.delete();
+-				} catch (FileNotFoundException e) {
+-					e.printStackTrace();
++				if(local){
++					try {
++						IOUtilities.cleanCache(fileDir, 0);
++						fileDir.delete();
++					} catch (FileNotFoundException e) {
++						e.printStackTrace();
++					}
+ 				}				
+ 				
+ 			}
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/NetworkObserver.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/NetworkObserver.java
+index 15072a1..81b8068 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/NetworkObserver.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/NetworkObserver.java
+@@ -16,8 +16,8 @@ import adhoc.tcp.TCPConnection;
+ import adhoc.tcp.TCPReceive.TCPReceiverData;
+ import edu.tamu.lenss.mdfs.FileRequestHandler;
+ import edu.tamu.lenss.mdfs.FragExchangeHelper;
+-import edu.tamu.lenss.mdfs.MDFSDirectory;
+-import edu.tamu.lenss.mdfs.ScheduledTask;
++//import edu.tamu.lenss.mdfs.MDFSDirectory;
++//import edu.tamu.lenss.mdfs.ScheduledTask;
+ import edu.tamu.lenss.mdfs.comm.FileReplyHandler.FileREPListener;
+ import edu.tamu.lenss.mdfs.comm.TopologyHandler.TopologyListener;
+ import edu.tamu.lenss.mdfs.models.DeleteFile;
+@@ -33,6 +33,9 @@ import edu.tamu.lenss.mdfs.models.NodeInfo;
+ import edu.tamu.lenss.mdfs.models.TaskResult;
+ import edu.tamu.lenss.mdfs.models.TaskSchedule;
+ import edu.tamu.lenss.mdfs.models.TopologyDiscovery;
++
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++
+ //import edu.tamu.lenss.mdfs.activities.JobProcessing.JobManagerListener;
+ //import android.os.Handler;
+ //import android.os.Looper;
+@@ -55,7 +58,7 @@ public class NetworkObserver implements Observer {
+ 	//private TaskProcessingHandler taskProcessingHandler = new TaskProcessingHandler();
+ 	private DeleteFileHandler deleteFileHandler = new DeleteFileHandler();
+ 	private RenameFileHandler renameFileHandler = new RenameFileHandler();
+-	private ScheduledTask scheduledTask = new ScheduledTask();
++	//private ScheduledTask scheduledTask = new ScheduledTask();
+ 	//private FailureEstimator failureEstimator;
+ 	private ExecutorService pool;
+ 	//private PowerManager pm; 
+@@ -76,7 +79,7 @@ public class NetworkObserver implements Observer {
+ 		myNode.startThread();
+ 		//failureEstimator = new FailureEstimator(this); failureEstimator.start();
+ 		pool = Executors.newCachedThreadPool();
+-		scheduledTask.start();
++		//scheduledTask.start();
+ 	}
+ 	/*@Override
+ 	public void onCreate() {
+@@ -119,17 +122,17 @@ public class NetworkObserver implements Observer {
+ 	
+ 	protected void deleteFiles(DeleteFile files){
+ 		deleteFileHandler.sendFileDeletionPacket(files);
+-		deleteFileHandler.processPacket(files);	// Also delete my file locally
++		deleteFileHandler.processPacket(files,true);	// Also delete my file locally
+ 	}
+ 
+ 	protected void renameFiles(RenameFile files){
+ 		renameFileHandler.sendFileRenamePacket(files);
+-		renameFileHandler.processPacket(files);	// Also delete my file locally
++		renameFileHandler.processPacket(files,true);	// Also delete my file locally
+ 	}
+ 
+ 
+ 	protected void sendFileUpdate(NewFileUpdate update){
+-		myNode.sendAODVDataContainer(update);
++		//myNode.sendAODVDataContainer(update);
+ 	}
+ 	
+ 	/*private JobManagerListener jobManagerListener;
+@@ -146,7 +149,7 @@ public class NetworkObserver implements Observer {
+ 		myNode.sendAODVDataContainer(new JobComplete());
+ 	}
+ 	
+-	protected void broadcastMyDirectory(){
++	/*protected void broadcastMyDirectory(){
+ 		List<MDFSFileInfo> list = ServiceHelper.getInstance().getDirectory().getFileList();
+ 		for(MDFSFileInfo fInfo : list){
+ 			NewFileUpdate fUpdate = new NewFileUpdate(fInfo);
+@@ -162,7 +165,7 @@ public class NetworkObserver implements Observer {
+ 				myNode.sendAODVDataContainer(fUpdate);
+ 			}			
+ 		}
+-	}
++	}*/
+ 	
+ 	protected Node getMyNode(){
+ 		return myNode;
+@@ -220,7 +223,7 @@ public class NetworkObserver implements Observer {
+ 							receiveTopologyDiscovery(top);
+ 						}
+ 					});
+-					//showToast("Receive Discovery from " + top.getSource());
++					showToast("Receive Discovery from " + top.getSource());
+ 					break;
+ 				case MDFSPacketType.NODE_INFO:
+ 					final NodeInfo info = (NodeInfo)msg.getContainedData();
+@@ -244,9 +247,9 @@ public class NetworkObserver implements Observer {
+ 					break;
+ 				case MDFSPacketType.NEW_FILE_UPDATE:
+ 					final NewFileUpdate dirUpdate = (NewFileUpdate)msg.getContainedData();
+-					MDFSDirectory dir = ServiceHelper.getInstance().getDirectory();
++					MDFSDirectoryProtocol dir = ServiceHelper.getInstance().getDirectory();
+ 					dir.addFile(dirUpdate.getFileInfo());
+-					//showToast("Receive Directory Update from " + dirUpdate.getSource());
++					showToast("Receive Directory Update from " + dirUpdate.getSource());
+ 					break;
+ 				case MDFSPacketType.FILE_REQ:
+ 					final FileREQ fileReq = (FileREQ)msg.getContainedData();
+@@ -256,7 +259,7 @@ public class NetworkObserver implements Observer {
+ 							fileReqHandler.processRequest(fileReq);
+ 						}
+ 					});
+-					//showToast("Receive File Request from " + fileReq.getSource());
++					showToast("Receive File Request from " + fileReq.getSource());
+ 					break;
+ 				case MDFSPacketType.FILE_REP:
+ 					final FileREP fileRep = (FileREP)msg.getContainedData();
+@@ -273,7 +276,7 @@ public class NetworkObserver implements Observer {
+ 					pool.execute(new Runnable(){
+ 						@Override
+ 						public void run() {
+-							deleteFileHandler.processPacket(deleteFile);
++							deleteFileHandler.processPacket(deleteFile,false);
+ 						}
+ 					});
+ 					showToast("Receive DeleteFile from " + deleteFile.getSource());
+@@ -283,7 +286,7 @@ public class NetworkObserver implements Observer {
+ 					pool.execute(new Runnable(){
+ 						@Override
+ 						public void run() {
+-							renameFileHandler.processPacket(renameFile);
++							renameFileHandler.processPacket(renameFile,false);
+ 						}
+ 					});
+ 					showToast("Receive RenameFile from " + renameFile.getSource());
+@@ -344,7 +347,7 @@ public class NetworkObserver implements Observer {
+ 		/*Message m = new Message();
+ 		m.obj = msg;
+ 		uiHandler.sendMessage(m);*/
+-		// Logger.i(TAG, msg);
++		Logger.i(TAG, msg);
+ 	}
+ 	/*private Handler uiHandler = new Handler(){
+ 		@Override
+@@ -368,7 +371,7 @@ public class NetworkObserver implements Observer {
+ 		myNode.deleteObserver(this);
+ 		myNode.stopThread();
+ 		pool.shutdown();
+-		scheduledTask.stop();
++		//scheduledTask.stop();
+ 	}
+ 	
+ 	/*@Override
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/RenameFileHandler.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/RenameFileHandler.java
+index 7f1a44a..bae4afb 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/RenameFileHandler.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/RenameFileHandler.java
+@@ -7,22 +7,26 @@ import java.util.Set;
+ 
+ import adhoc.etc.IOUtilities;
+ import edu.tamu.lenss.mdfs.Constants;
+-import edu.tamu.lenss.mdfs.MDFSDirectory;
++//import edu.tamu.lenss.mdfs.MDFSDirectory;
+ import edu.tamu.lenss.mdfs.models.RenameFile;
+ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
+ 
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++import org.apache.hadoop.io.SetWritable;
++
++
+ public class RenameFileHandler {
+ 	
+ 	public RenameFileHandler(){
+ 	}
+ 
+-	public void processPacket(RenameFile rename){
++	public void processPacket(RenameFile rename,boolean local){
+ 		if(rename.getSrcFileName() == null || rename.getDestFileName() == null){
+ 			System.out.println(" Src is null or dest is null src: "+rename.getSrcFileName() + " dest: " + rename.getDestFileName());
+ 			return;
+ 		}
+-		new RenameFileThread(rename.getSrcFileName(),rename.getDestFileName(),rename.getFileIds()).start();
++		new RenameFileThread(rename.getSrcFileName(),rename.getDestFileName(),rename.getFileIds(),local).start();
+ 	}
+ 
+ 	public void sendFileRenamePacket(RenameFile rename){
+@@ -33,12 +37,14 @@ public class RenameFileHandler {
+ 		private String src;
+ 		private String dest;
+ 		private List<Long> blockIds;
++		private boolean local;
+ 
+ 
+-		private RenameFileThread(String src,String dest, List<Long> fIds){
++		private RenameFileThread(String src,String dest, List<Long> fIds,boolean local){
+ 			this.blockIds = fIds;
+ 			this.src =src;
+ 			this.dest = dest;
++			this.local=local;
+ 		}
+ 
+ 		@Override
+@@ -73,29 +79,31 @@ public class RenameFileHandler {
+ 
+ 
+ 						// Clean up the MDFSDirectory
+-						MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+-						directory.removeDecryptedFile(srcFileId);
+-						directory.removeEncryptedFile(srcFileId);
+-
+-
+-						MDFSFileInfo fileInfo = new MDFSFileInfo(destFileName, destFileId ,true);
+-						MDFSFileInfo prevFileInfo=directory.getFileInfo(srcFileId);
+-						fileInfo.setCreator(prevFileInfo.getCreator());
+-						fileInfo.setFragmentsParms(prevFileInfo.getN1(),prevFileInfo.getK1(),prevFileInfo.getN2(),prevFileInfo.getK2());
+-						fileInfo.setFileLength(prevFileInfo.getFileLength());
+-						fileInfo.setKeyStorage(prevFileInfo.getKeyStorage());
+-						fileInfo.setFileStorage(prevFileInfo.getFileStorage());
+-
+-						directory.removeFile(srcFileId);
+-						directory.addFile(fileInfo);
+-
+-						Set<Integer> filefrags= directory.getStoredFileIndex(srcFileId);
+-						directory.removeFileFragment(srcFileId);
+-						directory.addFileFragment(destFileId, filefrags);
+-
+-						int keyfrag = directory.getStoredKeyIndex(srcFileId);
+-						directory.removeKeyFragment(srcFileId);
+-						directory.addKeyFragment(destFileId,keyfrag);
++						if(local){
++							MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
++							directory.removeDecryptedFile(srcFileId);
++							directory.removeEncryptedFile(srcFileId);
++
++
++							MDFSFileInfo fileInfo = new MDFSFileInfo(destFileName, destFileId ,true);
++							MDFSFileInfo prevFileInfo=directory.getFileInfo(srcFileId);
++							fileInfo.setCreator(prevFileInfo.getCreator());
++							fileInfo.setFragmentsParms(prevFileInfo.getN1(),prevFileInfo.getK1(),prevFileInfo.getN2(),prevFileInfo.getK2());
++							fileInfo.setFileLength(prevFileInfo.getFileLength());
++							fileInfo.setKeyStorage(prevFileInfo.getKeyStorage());
++							fileInfo.setFileStorage(prevFileInfo.getFileStorage());
++
++							directory.removeFile(srcFileId);
++							directory.addFile(fileInfo);
++
++							//Set<Integer> filefrags= directory.getStoredFileIndex(srcFileId).getItemSet();
++							//directory.removeFileFragment(srcFileId);
++							//directory.addFileFragment(destFileId, new SetWritable(filefrags));
++							directory.replaceFileFragment(srcFileId,destFileId);
++							//int keyfrag = directory.getStoredKeyIndex(srcFileId);
++							//directory.removeKeyFragment(srcFileId);
++							directory.replaceKeyFragment(srcFileId,destFileId);
++						}
+ 
+ 						// Remove Encrypted File
+ 						file = new File(rootDir, "encrypted/" + MDFSFileInfo.getDirName(srcFileName, srcFileId));
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/ServiceHelper.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/ServiceHelper.java
+index 224c915..7136f41 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/ServiceHelper.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/comm/ServiceHelper.java
+@@ -10,6 +10,17 @@ import edu.tamu.lenss.mdfs.models.RenameFile;
+ import edu.tamu.lenss.mdfs.models.FileREQ;
+ import edu.tamu.lenss.mdfs.models.NewFileUpdate;
+ import edu.tamu.lenss.mdfs.models.TaskResult;
++
++import org.apache.hadoop.conf.Configuration;
++import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
++import org.apache.hadoop.mdfs.protocol.MDFSNameService;
++import org.apache.hadoop.ipc.RPC;
++import org.apache.hadoop.ipc.RPC.Server;
++
++import java.net.InetSocketAddress;
++import java.io.IOException;
++
++
+ //import edu.tamu.lenss.mdfs.activities.JobProcessing.JobManagerListener;
+ //import android.content.ComponentName;
+ //import android.content.ServiceConnection;
+@@ -21,18 +32,56 @@ public class ServiceHelper {
+ 	/* Global Shared Instances */
+ 	private static ServiceHelper instance = null;
+ 	private static NetworkObserver service;
+-	private static MDFSDirectory directory;
++	private static MDFSDirectoryProtocol directory;
+ 	//private static Context context;
+ 	private static volatile boolean connected = false;
+-	
++	private static Configuration conf = null;
++	private static boolean standAloneConf = true;
++
++	static{
++		Configuration.addDefaultResource("hdfs-default.xml");
++		Configuration.addDefaultResource("hdfs-site.xml");
++	}
++
++	public static void setConf(Configuration userConf){
++		conf=userConf;
++	}
++
++	public static void setStandAloneConf(boolean val){
++		standAloneConf=val;
++	}
++
+ 	private ServiceHelper() {
+ 		/*cont.bindService(new Intent(cont, NetworkObserver.class),
+-				mConnection, Context.BIND_AUTO_CREATE);*/
++		  mConnection, Context.BIND_AUTO_CREATE);*/
+ 		Logger.v(TAG, "Start to bind service");
+ 		service = new NetworkObserver();
+ 		//context = cont;
+-		directory = MDFSDirectory.readDirectory();
+-		directory.syncLocal();
++	        Logger.v(TAG," StandAlone Conf "+standAloneConf);	
++		if(standAloneConf == false){
++			if (conf == null)
++				conf = new Configuration();
++			InetSocketAddress nodeAddr = MDFSNameService.getDirectoryServiceAddress(conf);
++			Logger.v(TAG, " Going to connect to MDFSDirectoryService ");
++			try{
++				this.directory =  (MDFSDirectoryProtocol)
++					RPC.waitForProxy(MDFSDirectoryProtocol.class,
++							MDFSDirectoryProtocol.versionID,
++							nodeAddr,
++							conf);
++			}
++			catch(IOException e)
++			{
++				Logger.v(TAG, " IOExcpetion happened when connecting to directory service");
++			}
++			Logger.v(TAG," Connected to MDFSDirectoryService ");
++		}
++		else
++		{
++
++			directory = MDFSDirectory.readDirectory();
++			directory.syncLocal(getMyNode().getNodeId());
++		}
+ 	}
+ 	
+ 	public static synchronized ServiceHelper getInstance() {
+@@ -67,11 +116,11 @@ public class ServiceHelper {
+ 		return service.getMyNode().getDatalogger();
+ 	}*/
+ 	
+-	public MDFSDirectory getDirectory() {
++	public MDFSDirectoryProtocol getDirectory() {
+ 		return directory;
+ 	}
+ 
+-	public static void setDirectory(MDFSDirectory directory) {
++	public static void setDirectory(MDFSDirectoryProtocol directory) {
+ 		ServiceHelper.directory = directory;
+ 	}
+ 
+@@ -82,7 +131,9 @@ public class ServiceHelper {
+ 			//connected = false;
+ 			
+ 			service.cancel();
+-			directory.saveDirectory();
++			if(standAloneConf == true){
++				directory.saveDirectory();
++			}
+ 			//service.getMyNode().getDatalogger().closeAllFiles();
+ 			instance = null;
+ 		}
+@@ -141,7 +192,7 @@ public class ServiceHelper {
+ 		service.broadcastJobComplete();
+ 	}
+ 	
+-	public void broadcastMyDirectory(){
++	/*public void broadcastMyDirectory(){
+ 		service.broadcastMyDirectory();
+-	}
++	}*/
+ }
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/models/MDFSFileInfo.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/models/MDFSFileInfo.java
+index d256e25..8d9a75c 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/models/MDFSFileInfo.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/models/MDFSFileInfo.java
+@@ -1,19 +1,27 @@
+ package edu.tamu.lenss.mdfs.models;
+ 
+ import java.io.Serializable;
++import java.io.IOException;
+ import java.text.SimpleDateFormat;
+ import java.util.Date;
+ import java.util.Set;
++import java.util.HashSet;
++import java.io.DataInput;
++import java.io.DataOutput;
++
++import org.apache.hadoop.io.Writable;
++import org.apache.hadoop.io.WritableFactories;
++import org.apache.hadoop.io.WritableFactory;
+ 
+ /**
+  * This class is used to store the information of any created file
+  * @author Jay
+  */
+-public class MDFSFileInfo implements Serializable {
++public class MDFSFileInfo implements Serializable,Writable {
+ 	private static final long serialVersionUID = 1L;
+-	private final long createdTime;
+-	private final String fileName;
+-	private final boolean fragmented;
++	private long createdTime;
++	private String fileName;
++	private boolean fragmented;
+ 	private long  lastModifiedTime;
+ 	private long fileLength;
+ 	private int k1, n1, k2, n2;
+@@ -22,6 +30,20 @@ public class MDFSFileInfo implements Serializable {
+ 	private Set<Integer> keyStorage;
+ 	private Set<Integer> fileStorage;
+ 	
++
++	static {                                      // register a ctor
++		WritableFactories.setFactory
++			(MDFSFileInfo.class,
++			 new WritableFactory() {
++				 public Writable newInstance() { return new MDFSFileInfo(); }
++			 });
++	}
++
++	public MDFSFileInfo(){
++		fileName=null;
++		createdTime = 0;
++	}
++
+ 	public MDFSFileInfo(String fileName, long time, boolean isFragmented){
+ 		this.fileName = fileName;
+ 		this.createdTime = time;
+@@ -127,4 +149,55 @@ public class MDFSFileInfo implements Serializable {
+ 		return tmp;
+ 	}
+ 
++	public void write(DataOutput out) throws IOException {
++		out.writeLong(createdTime);
++		out.writeUTF(fileName);
++		out.writeBoolean(fragmented);
++		out.writeLong(lastModifiedTime);
++		out.writeLong(fileLength);
++		out.writeInt(k1);
++		out.writeInt(n1);
++		out.writeInt(k2);
++		out.writeInt(n2);
++		out.writeInt(creator);
++		int keySize=keyStorage.size();
++		out.writeInt(keySize);
++		if(keySize > 0){
++			for(Integer i: keyStorage){
++				out.writeInt(i);
++			}
++		}
++		int fileSize=fileStorage.size();
++		out.writeInt(fileSize);
++		if(fileSize > 0){
++			for(Integer i: fileStorage){
++				out.writeInt(i);
++			}
++		}
++	}
++
++	public void readFields(DataInput in) throws IOException {
++		createdTime = in.readLong();
++		fileName = in.readUTF();
++		fragmented = in.readBoolean();
++		lastModifiedTime = in.readLong();
++		fileLength = in.readLong();
++		k1= in.readInt();
++		n1= in.readInt();
++		k2= in.readInt();
++		n2= in.readInt();
++		creator= in.readInt();
++
++		int keySize=in.readInt();
++		keyStorage= new HashSet<Integer>();
++		for(int i=0;i< keySize;i++){
++			keyStorage.add(in.readInt());
++		}
++		int fileSize=in.readInt();
++		fileStorage= new HashSet<Integer>();
++		for(int i=0;i< fileSize;i++){
++			fileStorage.add(in.readInt());
++		}
++	}
++
+ }
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/placement/FacilityLocation.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/placement/FacilityLocation.java
+index f5bcee9..a3cd4af 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/placement/FacilityLocation.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/comm/network/edu/tamu/lenss/mdfs/placement/FacilityLocation.java
+@@ -102,12 +102,12 @@ public class FacilityLocation {
+ 							fragmentSource.put(tmp.getNodeIndex(), new ArrayList<Integer>());
+ 							fragmentSource.get(tmp.getNodeIndex()).add(tmp.getStorageIndex());
+ 						}
+-						Logger.v(TAG, "Node " + tmp.getNodeIndex() + ", Storage " + tmp.getStorageIndex());
++						//Logger.v(TAG, "Node " + tmp.getNodeIndex() + ", Storage " + tmp.getStorageIndex());
+ 					}
+ 					else if(tmp.getType()==VarType.node){
+ 						
+ 						locations.add(tmp.getStorageIndex());
+-						Logger.v(TAG, "Storage Node: " + tmp.getStorageIndex());
++						//Logger.v(TAG, "Storage Node: " + tmp.getStorageIndex());
+ 					}
+ 				}
+ 			}
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockReader.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockReader.java
+index 807d1d2..001c835 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockReader.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockReader.java
+@@ -14,12 +14,15 @@ import org.apache.hadoop.mdfs.protocol.MDFSNameProtocol;
+ import org.apache.hadoop.mdfs.protocol.LocatedBlock;
+ import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
+ 
++import org.apache.commons.logging.*;
+ 
+ 
+ public class BlockReader{
+ 	FileInputStream dataIn;
+ 	String src;
+ 	MDFSNameProtocol namesystem;
++	public static final Log LOG = LogFactory.getLog(BlockReader.class);
++
+ 
+ 	BlockReader(MDFSNameProtocol namesystem,String actualFileName,long blockId,long startOffset) throws FileNotFoundException,IOException{
+ 		this(namesystem,blockId,actualFileName,startOffset,getBlockLocationInFS(actualFileName,blockId));
+@@ -35,6 +38,7 @@ public class BlockReader{
+ 
+ 		if(!f.exists()){
+ 			System.out.println(" File to be read doesn't exist.Hence fetching the block "+fileName);
++			LOG.error(" File to be read doesn't exist.Hence fetching the block "+fileName);
+ 		}
+ 		else{
+ 			//while(true){
+@@ -44,7 +48,9 @@ public class BlockReader{
+ 						found=true;
+ 						if(f.length() != b.getBlockSize()){
+ 							System.out.println(" File already exists for read, but lengths mismatch." +fileName);
++							LOG.error(" File already exists for read, but lengths mismatch." +fileName);
+ 							System.out.println(" Existing file size "+ f.length() + " Actual file size "+ b.getBlockSize());
++							LOG.error(" Existing file size "+ f.length() + " Actual file size "+ b.getBlockSize());
+ 							throw new FileNotFoundException();
+ 						}
+ 						break;
+@@ -65,6 +71,7 @@ public class BlockReader{
+ 				//retry--;
+ 			//}
+ 			System.out.println(" Same file already exists for read  "+fileName);
++			LOG.error(" Same file already exists for read  "+fileName);
+ 
+ 		}
+ 
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockWriter.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockWriter.java
+index 8ef4b4e..67b99e0 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockWriter.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/BlockWriter.java
+@@ -22,7 +22,7 @@ public class BlockWriter{
+ 
+ 
+ 	BlockWriter(String fileName,boolean append) throws FileNotFoundException,IOException{
+-		System.out.println(" Creating BlockWriter for fileName "+fileName+" append "+append);
++		//System.out.println(" Creating BlockWriter for fileName "+fileName+" append "+append);
+ 		src=fileName;
+ 		File f = new File(fileName);
+ 
+@@ -38,7 +38,7 @@ public class BlockWriter{
+ 
+ 
+ 	public void writeBuffer(byte[] buffer,int offset,int length) throws IOException{
+-		System.out.println("  writing buffer offset "+ offset+" length "+length + " src "+src);
++		//System.out.println("  writing buffer offset "+ offset+" length "+length + " src "+src);
+ 		dataOut.write(buffer,offset,length);
+ 	}
+ 
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSInputStream.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSInputStream.java
+index ab36bd9..1cb5dab 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSInputStream.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSInputStream.java
+@@ -18,6 +18,7 @@ import org.apache.hadoop.mdfs.protocol.LocatedBlocks;
+ import org.apache.hadoop.mdfs.utils.MountFlags;
+ import org.apache.hadoop.mdfs.protocol.BlockInfo;
+ import org.apache.hadoop.mdfs.protocol.LocatedBlock;
++import org.apache.commons.logging.*;
+ 
+ 
+ 
+@@ -37,6 +38,7 @@ public class MDFSInputStream extends FSInputStream {
+ 	private byte[] oneByteBuf = new byte[1];
+ 	private BlockReader blockReader;
+ 	private Configuration conf;
++	public static final Log LOG = LogFactory.getLog(MDFSInputStream.class);
+ 
+ 
+ 
+@@ -135,7 +137,8 @@ public class MDFSInputStream extends FSInputStream {
+ 				filePos += result;
+ 			} else {
+ 				// got a EOS from reader though we expect more data on it.
+-				throw new IOException("Unexpected EOS from the reader");
++				throw new IOException("Unexpected EOS from the reader. FilePos "+filePos+" result "+result+" len "+len
++					       +" realLen "+realLen+" currentBlockEnd "+currentBlockEnd+" offset "+off   );
+ 			}
+ 			//for(byte b:buf)
+ 			//	 System.out.println(" ReadByte "+(char)b+" FilePos "+filePos);
+@@ -231,16 +234,22 @@ public class MDFSInputStream extends FSInputStream {
+ 		long blockId = targetBlock.getBlock().getBlockId();
+ 		String blockLoc= BlockReader.getBlockWriteLocationInFS(src,blockId);
+ 		System.out.println(" BlockLocation  of block "+blockId +" is "+ blockLoc);
++		LOG.error(" BlockLocation  of block "+blockId +" is "+ blockLoc);
+ 		System.out.println(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
++		LOG.error(" OffsetIntoBlock "+offsetIntoBlock+" target "+target+" filePos "+filePos);
+ 		
+ 		try{
++			LOG.error("First Attempt: To Read File"+src+" blockId "+blockId+" blockLoc "+blockLoc);
+ 			blockReader=new BlockReader(namesystem,src,blockId,offsetIntoBlock);
+ 		}
+ 		catch(FileNotFoundException e){
+ 
+ 			System.out.println(" Retrieving file from network as file is not present Locally");
++			LOG.error("Second Attempt: Retrieving file from network as file is not present Locally"+src+" blockId "+blockId+" blockLoc "+blockLoc);
+ 			datasystem.retrieveBlock(src,blockLoc,blockId);
++			LOG.error("Second Attempt: BlockRetrieved"+src+" blockId "+blockId+" blockLoc "+blockLoc);
+ 			blockReader=new BlockReader(namesystem,src,blockId,offsetIntoBlock);
++			LOG.error("Block Read Successfully"+src+" blockId "+blockId+" blockLoc "+blockLoc);
+ 
+ 		}
+ 		return blockReader;	
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSOutputStream.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSOutputStream.java
+index f701f77..69bb4e6 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSOutputStream.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/io/MDFSOutputStream.java
+@@ -142,7 +142,7 @@ public class MDFSOutputStream extends OutputStream {
+ 
+ 	@Override
+ 	public synchronized void write(byte buf[], int off, int len) throws IOException {
+-		System.out.println(" Write called with offset "+off+" length "+len);
++		//System.out.println(" Write called with offset "+off+" length "+len);
+ 		
+ 		byte[] array= new byte[len];
+ 		System.arraycopy(buf,off,array,0,len);
+@@ -155,7 +155,7 @@ public class MDFSOutputStream extends OutputStream {
+ 
+ 	@Override
+ 	public synchronized void flush() throws IOException {
+-		System.out.println("  flush ");
++		//System.out.println("  flush ");
+ 		flushBuffer();
+ 		bufCount=0;
+ 
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSCommunicator.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSCommunicator.java
+index ca2f38b..e1e8de2 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSCommunicator.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSCommunicator.java
+@@ -14,6 +14,8 @@ import edu.tamu.lenss.mdfs.MDFSFileRetriever.FileRetrieverListener;
+ import edu.tamu.lenss.mdfs.comm.ServiceHelper;
+ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
+ 
++import org.apache.commons.logging.*;
++
+ 
+ class BlockOperation{
+ 	public String blockToOperate;
+@@ -28,15 +30,17 @@ class BlockOperation{
+ class ListOfBlocksOperation{
+ 	private LinkedList<BlockOperation> blocksOperation;
+ 	boolean valueSet =false;
++	public static final Log LOG = LogFactory.getLog(ListOfBlocksOperation.class);
++
+ 
+ 	ListOfBlocksOperation(){
+ 		blocksOperation = new LinkedList<BlockOperation>();
+ 	}
+ 
+ 	synchronized void addElem(BlockOperation blockOps){
+-		System.out.println("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
++		LOG.info("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+ 		blocksOperation.add(blockOps);
+-		System.out.println("Size "+blocksOperation.size());
++		LOG.info("Size "+blocksOperation.size());
+ 		notify();
+ 
+ 	}
+@@ -48,11 +52,11 @@ class ListOfBlocksOperation{
+ 				wait();
+ 				blockOps = blocksOperation.poll();
+ 			}
+-			System.out.println("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
++			LOG.info("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+ 		}  catch(InterruptedException e) {
+ 			System.out.println("InterruptedException caught");
+ 		}
+-		System.out.println("Size "+blocksOperation.size());
++		LOG.info("Size "+blocksOperation.size());
+ 		return blockOps;
+ 	}
+ 
+@@ -66,7 +70,7 @@ class ListOfBlocksOperation{
+ 		}
+ 		blocksOperation.add(blockOps);
+ 		valueSet=true;
+-		System.out.println("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
++		LOG.info("Adding Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+ 		notify();
+ 
+ 	}
+@@ -81,7 +85,7 @@ class ListOfBlocksOperation{
+ 		}
+ 		BlockOperation blockOps = blocksOperation.poll();
+ 		valueSet=false;
+-		System.out.println("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
++		LOG.info("Removing Elem"+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+ 		notify();
+ 		return blockOps;
+ 
+@@ -98,13 +102,15 @@ class MDFSCommunicator implements Runnable{
+ 	static boolean isComplete=false;
+ 	static boolean isSuccess=true;
+ 	static final int MAXRETRY = 5;
++	static String requested_file=""; 
++	public static final Log LOG = LogFactory.getLog(MDFSCommunicator.class);
+ 
+ 
+ 	MDFSCommunicator(ListOfBlocksOperation list,boolean newThread){
+ 		ll =list;
+ 		if(newThread){
+ 			t= new Thread(this,"MDFS Communication Thread");
+-			System.out.println(" MDFS Communication Thread Started ");
++			LOG.info(" MDFS Communication Thread Started ");
+ 			t.start();
+ 		}
+ 	}
+@@ -151,8 +157,7 @@ class MDFSCommunicator implements Runnable{
+ 
+ 
+ 	public boolean sendBlockOperation(BlockOperation blockOps) {
+-		System.out.println(" Send Block Operations to Network");
+-		System.out.println("Block Operation Elem "+blockOps.blockToOperate + " Operation "+ blockOps.operation);
++		LOG.info("Send block Operation to Network: Elem "+blockOps.blockToOperate + " Operation "+ blockOps.operation);
+ 		int maxRetry = MAXRETRY;
+ 		isSuccess=true;
+ 		//BlockOperation blockOps =ll.getElem();
+@@ -177,7 +182,7 @@ class MDFSCommunicator implements Runnable{
+ 					fileComplete.await();
+ 				}
+ 				else{
+-					System.out.println(" isComplete is already true.");
++					LOG.error("sendBlockOperation:: isComplete is already true.");
+ 				}
+ 			}
+ 			catch (InterruptedException e) {
+@@ -194,8 +199,8 @@ class MDFSCommunicator implements Runnable{
+ 			}
+ 			else{
+ 				maxRetry--;
+-				System.out.println(" Earlier execution for file "+blockOps.blockToOperate + " Operation "+ blockOps.operation+" is unsuccessful");
+-				System.out.println(" No of retries left is "+maxRetry);
++				LOG.info(" Earlier execution for file "+blockOps.blockToOperate + " Operation "+ blockOps.operation+" is unsuccessful");
++				LOG.info(" No of retries left is "+maxRetry);
+ 			}
+ 		}
+ 		if(maxRetry == 0)
+@@ -214,21 +219,20 @@ class MDFSCommunicator implements Runnable{
+ 	private static MDFSFileCreatorListener fileCreatorListener = new MDFSFileCreatorListener(){
+ 		@Override
+ 		public void statusUpdate(String status) {
+-			System.out.println("Creation status update: " + status);
++			LOG.info("Creation status update: " + status);
+ 		}
+ 
+ 		@Override
+ 		public void onError(String error) {
+-			System.err.println("Creation Error:     " + error);
++			LOG.error("Creation Error:     " + error);
+ 			lock.lock();
+ 			isSuccess =false;
+-			System.out.println("File Creation Error. ");
+ 			try{
+ 				if(isComplete== false ){
+ 					isComplete=true;
+ 					fileComplete.signal();
+ 				}else{
+-					System.out.println(" isComplete is already true.");
++					LOG.error(" isComplete is already true.");
+ 				}
+ 			}
+ 			finally {
+@@ -240,13 +244,13 @@ class MDFSCommunicator implements Runnable{
+ 		public void onComplete() {
+ 			lock.lock();
+ 			isSuccess =true;
+-			System.out.println("File Creation Complete. ");
++			LOG.info("File Creation Complete. ");
+ 			try{
+ 				if(isComplete== false ){
+ 					isComplete=true;
+ 					fileComplete.signal();
+ 				}else{
+-					System.out.println(" isComplete is already true.");
++					LOG.error(" isComplete is already true.");
+ 				}
+ 			}
+ 			finally {
+@@ -259,7 +263,8 @@ class MDFSCommunicator implements Runnable{
+ 
+ 	public static void retrieveFile(String fileName){
+ 		isComplete=false;
+-		System.out.println(" Retrieve file "+fileName);
++		LOG.info(" Retrieve file "+fileName);
++		requested_file=fileName;
+ 		MDFSFileRetriever retriever = new MDFSFileRetriever(fileName, fileName.hashCode());
+ 		retriever.setListener(fileRetrieverListener);
+ 		retriever.start();
+@@ -272,21 +277,20 @@ class MDFSCommunicator implements Runnable{
+ 	private static FileRetrieverListener fileRetrieverListener = new FileRetrieverListener(){
+ 		@Override
+ 		public void statusUpdate(String status) {
+-			System.out.println("Retrieval status update: " + status);
++			LOG.info("Retrieval status update: " + status);
+ 		}
+ 
+ 		@Override
+ 		public void onError(String error) {
+-			System.err.println("Retrieval Error:     " + error);
++			LOG.error("Retrieval Error:     " + error);
+ 			lock.lock();
+ 			isSuccess =false;
+-			System.out.println("File Retrieval Error. ");
+ 			try{
+ 				if(isComplete== false ){
+ 					isComplete=true;
+ 					fileComplete.signal();
+ 				}else{
+-					System.out.println(" isComplete is already true.");
++					LOG.error(" isComplete is already true.");
+ 				}
+ 			}
+ 			finally {
+@@ -295,16 +299,16 @@ class MDFSCommunicator implements Runnable{
+ 		}
+ 
+ 		@Override
+-		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo) {
++		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo, String fileName) {
+ 			lock.lock();
+ 			isSuccess =true;
+-			System.out.println("File Retrieval Complete. ");
+ 			try{
+ 				if(isComplete== false ){
+ 					isComplete=true;
+ 					fileComplete.signal();
++					LOG.info("File Retrieval Complete. "+fileName);
+ 				}else{
+-					System.out.println(" isComplete is already true.");
++					LOG.error(" isComplete is already true.");
+ 				}
+ 			}
+ 			finally {
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSDataService.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSDataService.java
+index eccd3cc..f27a34d 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSDataService.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSDataService.java
+@@ -35,12 +35,14 @@ import org.apache.hadoop.mdfs.io.BlockReader;
+ import adhoc.etc.IOUtilities;
+ import adhoc.etc.MyTextUtils;
+ 
++import org.apache.commons.logging.*;
+ 
+ 
+ public class MDFSDataService implements MDFSDataProtocol{
+ 
+ 	private static MDFSDataService instance = null;
+ 
++	public static final Log LOG = LogFactory.getLog(MDFSDataService.class);
+ 	private ServiceHelper serviceHelper;
+ 	private int myNodeId;
+ 	private ListOfBlocksOperation ll;
+@@ -65,6 +67,8 @@ public class MDFSDataService implements MDFSDataProtocol{
+ 	MDFSDataService(Configuration conf){
+ 		if (conf == null)
+ 			conf = new Configuration();
++		ServiceHelper.setConf(conf);
++		ServiceHelper.setStandAloneConf(false);
+ 		this.serviceHelper = ServiceHelper.getInstance();
+ 		this.myNodeId = serviceHelper.getMyNode().getNodeId();
+ 		ll=new ListOfBlocksOperation();
+@@ -127,7 +131,7 @@ public class MDFSDataService implements MDFSDataProtocol{
+ 	}
+ 
+ 	public void notifyBlockAdded(String src,String actualBlockLoc,long blockId,long bufCount) throws IOException{
+-		System.out.println("MDFSDataService: Adding a new file "+ actualBlockLoc);
++		LOG.info("MDFSDataService: Adding a new file "+ actualBlockLoc+" src "+src+" blockId "+blockId);
+ 		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"CREATE");		
+ 		if(newThreadforMDFSCommunicator){
+ 			//ll.addElem(blockOps);
+@@ -138,12 +142,12 @@ public class MDFSDataService implements MDFSDataProtocol{
+ 			if(!ret)
+ 				throw new IOException(" Block Creation Failed");
+ 		}
+-		System.out.println("MDFSDataService: New file added"+ actualBlockLoc);
++		LOG.info("MDFSDataService: New file added"+ actualBlockLoc);
+ 		//mdfsDir.notifyBlockAdded(src,blockId,bufCount);
+ 	}
+ 
+ 	public void retrieveBlock(String src,String actualBlockLoc,long blockId) throws IOException{
+-		System.out.println("MDFSDataService: Retrieving  a  file "+ actualBlockLoc);
++		LOG.info("MDFSDataService: Retrieving  a  file "+ actualBlockLoc+" src "+src+" blockId "+blockId);
+ 		BlockOperation blockOps = new BlockOperation(actualBlockLoc,"RETRIEVE");	
+ 		if(newThreadforMDFSCommunicator){
+ 			//ll.addElem(blockOps);
+@@ -154,7 +158,8 @@ public class MDFSDataService implements MDFSDataProtocol{
+ 			if(!ret)
+ 				throw new IOException(" Block Retrieval Failed");
+ 		}
+-		System.out.println("MDFSDataService: Retrieving file done "+ actualBlockLoc);
++		LOG.info("MDFSDataService: Retrieving file done "+ actualBlockLoc+" src "+src+" blockId "+blockId);
++
+ 	}
+ 
+ 
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSDirectoryProtocol.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSDirectoryProtocol.java
+new file mode 100644
+index 0000000..9938aef
+--- /dev/null
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSDirectoryProtocol.java
+@@ -0,0 +1,92 @@
++package org.apache.hadoop.mdfs.protocol;
++
++import java.io.*;
++import java.util.ArrayList;
++import java.util.Set;
++
++
++import org.apache.hadoop.ipc.VersionedProtocol;
++import org.apache.hadoop.io.SetWritable;
++import org.apache.hadoop.fs.permission.FsPermission;
++
++
++import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
++
++
++public interface MDFSDirectoryProtocol extends VersionedProtocol {
++
++	public static final long versionID = 1L;
++
++	public MDFSFileInfo getFileInfo(long fileId);
++
++	public MDFSFileInfo getFileInfo(String fName);
++
++	public long getFileIdByName(String name);
++
++	public int getStoredKeyIndex(long fileId,int creator);
++
++	public int getStoredKeyIndex(String fName,int creator);
++
++	public SetWritable getStoredFileIndex(long fileId,int creator);
++
++	public SetWritable getStoredFileIndex(String fName,int creator);
++
++	public void addFile(MDFSFileInfo file);
++
++	public void removeFile(long fileId);
++
++	public void addKeyFragment(long fileId, int keyIndex,int creator);
++
++	public void addKeyFragment(String fileName, int keyIndex,int creator);
++
++	public void replaceKeyFragment(long src,long dst);
++	
++	public void replaceFileFragment(long src,long dst);
++
++	public void removeKeyFragment(long fileId,int creator);
++
++	public void removeKeyFragment(String fileName,int creator);
++
++	public void addFileFragment(long fileId, int fileIndex,int creator);
++
++	public void addFileFragment(String fileName, int fileIndex,int creator);
++
++	public void addFileFragment(long fileId, SetWritable fileIndex,int creator);
++
++	public void addFileFragment(String fileName, SetWritable fileIndex,int creator);
++
++	public void removeFileFragment(long fileId,int creator);
++
++	public void removeFileFragment(String fileName,int creator);
++
++	public void addEncryptedFile(long fileId);
++
++	public void addEncryptedFile(String fileName);
++
++	public void removeEncryptedFile(long fileId);
++
++	public void removeEncryptedFile(String fileName);
++
++	public void addDecryptedFile(long fileId);
++
++	public void addDecryptedFile(String fileName);
++
++	public void removeDecryptedFile(long fileId);
++
++	public void removeDecryptedFile(String fileName);
++
++	public boolean isEncryptedFileCached(long fileId);
++
++	public boolean isDecryptedFileCached(long fileId);
++
++	public void clearAll() ;
++
++	public boolean saveDirectory();
++
++	public void syncLocal(int nodeId);
++
++	public MDFSInfoList getFileList();
++
++
++}
++
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSInfoList.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSInfoList.java
+new file mode 100644
+index 0000000..36a80c5
+--- /dev/null
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSInfoList.java
+@@ -0,0 +1,93 @@
++package org.apache.hadoop.mdfs.protocol;
++
++import java.io.DataInput;
++import java.io.DataOutput;
++import java.io.IOException;
++import java.util.List;
++import java.util.ArrayList;
++
++import org.apache.hadoop.io.WritableComparable;
++
++import org.apache.hadoop.io.Writable;
++import org.apache.hadoop.io.WritableFactories;
++import org.apache.hadoop.io.WritableFactory;
++
++import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
++
++
++/**
++ *  * 
++ *   * @author johnu
++ *    */
++public class MDFSInfoList implements Writable {
++
++	static {                                      // register a ctor
++		WritableFactories.setFactory
++			(MDFSInfoList.class,
++			 new WritableFactory() {
++				 public Writable newInstance() { return new MDFSInfoList(); }
++			 });
++	}
++
++	private List<MDFSFileInfo> itemSet;
++
++	/**
++	 *          * Constructor.
++	 *                   */
++	public MDFSInfoList() {
++
++	}
++
++	public MDFSInfoList(List<MDFSFileInfo> itemSet) {
++
++		this.itemSet = itemSet;
++	}
++
++	public String toString() {
++
++		return itemSet.toString();
++	}
++
++	public int size() {
++
++		return itemSet.size();
++	}
++
++
++	public void readFields(DataInput in) throws IOException {
++
++		if (this.itemSet != null) {
++			this.itemSet.clear();
++		} else {
++			this.itemSet = new ArrayList<MDFSFileInfo>();
++		}
++		int count = in.readInt();
++		while (count-- > 0) {
++			MDFSFileInfo fInfo = new MDFSFileInfo();
++			fInfo.readFields(in);
++			itemSet.add(fInfo);
++		}
++	}
++
++	public void write(DataOutput out) throws IOException {
++
++		out.writeInt(itemSet.size());
++		for (MDFSFileInfo item : itemSet) {
++			item.write(out);
++		}
++	}
++
++
++	public List<MDFSFileInfo> getItemSet() {
++
++		return itemSet;
++	}
++
++	public void setItemSet(List<MDFSFileInfo> itemSet) {
++
++		this.itemSet = itemSet;
++	}
++
++}
++
++
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSNameService.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSNameService.java
+index a5c23f9..c820edf 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSNameService.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/protocol/MDFSNameService.java
+@@ -1,10 +1,12 @@
+ package org.apache.hadoop.mdfs.protocol;
+ 
++import java.util.Set;
+ import java.io.IOException;
+ import java.io.FileNotFoundException;
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Iterator;
++
+ import java.net.InetSocketAddress;
+ import java.net.URI;
+ 
+@@ -12,6 +14,7 @@ import java.net.URI;
+ 
+ 
+ import org.apache.hadoop.conf.Configuration;
++import org.apache.hadoop.io.SetWritable;
+ import org.apache.hadoop.fs.permission.FsPermission;
+ import org.apache.hadoop.fs.FileAlreadyExistsException;
+ import org.apache.hadoop.fs.FileSystem;
+@@ -28,25 +31,36 @@ import org.apache.hadoop.net.NetUtils;
+ 
+ 
+ 
+-import edu.tamu.lenss.mdfs.comm.ServiceHelper;
++
++import edu.tamu.lenss.mdfs.MDFSDirectory;
++import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
++
++
+ import edu.tamu.lenss.mdfs.models.DeleteFile;
+ import org.apache.hadoop.mdfs.io.BlockReader;
+ 
+ import adhoc.etc.MyTextUtils;
+ import adhoc.etc.IOUtilities;
+ 
++import org.apache.commons.logging.*;
++
+ 
+-public class MDFSNameService implements MDFSNameProtocol{
++public class MDFSNameService implements MDFSNameProtocol,MDFSDirectoryProtocol{
+ 
+ 	private static MDFSNameService instance = null;
+-	private MDFSDirectory mdfsDir;
++	public static final Log LOG = LogFactory.getLog(MDFSNameService.class);
++
++	private org.apache.hadoop.mdfs.protocol.MDFSDirectory mdfsDir;
++	private edu.tamu.lenss.mdfs.MDFSDirectory commDir;
+ 
+ 	private int myNodeId;
+ 	private ListOfBlocksOperation ll;
+ 	private MDFSCommunicator commThread;
+ 	private boolean newThreadforMDFSCommunicator = false;//whether to start a new Thread for MDFS communicator
+ 	private Server server;
++	private Server directoryServer;
+ 	private InetSocketAddress serverAddress = null;
++	private InetSocketAddress directoryServerAddress = null;
+ 
+ 	public static final int DEFAULT_PORT = 8020;
+ 
+@@ -64,7 +78,8 @@ public class MDFSNameService implements MDFSNameProtocol{
+ 	MDFSNameService(Configuration conf){
+ 		if (conf == null)
+ 			conf = new Configuration();
+-		mdfsDir= new MDFSDirectory(this,conf);
++		mdfsDir= new org.apache.hadoop.mdfs.protocol.MDFSDirectory(this,conf);
++		commDir =new edu.tamu.lenss.mdfs.MDFSDirectory();
+ 		String localIp = IOUtilities.getLocalIpAddress();
+ 		if(!MyTextUtils.isEmpty(localIp)){
+ 			this.myNodeId = IOUtilities.parseNodeNumber(localIp);
+@@ -77,7 +92,7 @@ public class MDFSNameService implements MDFSNameProtocol{
+ 		System.out.println(" My Node Id "+ myNodeId);
+ 		
+ 		//TODO
+-		int handlerCount =3;
++		int handlerCount =1;
+ 		InetSocketAddress socAddr = MDFSNameService.getAddress(conf);
+ 		try{
+ 			this.server = RPC.getServer(this, socAddr.getHostName(),
+@@ -89,9 +104,22 @@ public class MDFSNameService implements MDFSNameProtocol{
+ 		}
+ 		catch(IOException e){
+ 
+-			System.out.println("MDFS protocol not started due to IOException");
++			System.out.println("MDFS Name Service protocol not started due to IOException");
+ 		}
+ 
++		InetSocketAddress socDirectoryAddr = MDFSNameService.getDirectoryServiceAddress(conf);
++		try{
++			this.directoryServer = RPC.getServer(this, socDirectoryAddr.getHostName(),
++					socDirectoryAddr.getPort(), handlerCount, false, conf, null);
++			this.directoryServer.start();  //start RPC server   
++			this.directoryServerAddress = this.directoryServer.getListenerAddress(); 
++			FileSystem.setDefaultUri(conf, getUri(directoryServerAddress));
++			System.out.println("MDFS DirectoryService up at: " + this.directoryServerAddress);
++		}
++		catch(IOException e){
++
++			System.out.println("MDFS Directory Service protocol not started due to IOException");
++		}
+ 
+ 
+ 	}
+@@ -106,6 +134,15 @@ public class MDFSNameService implements MDFSNameProtocol{
+ 		return getAddress(addr);
+ 	}
+ 
++	public static InetSocketAddress getDirectoryServiceAddress(Configuration conf) {
++		//TODO
++		String addr = conf.get("mdfs.directoryservice.rpc-address");
++		if (addr == null || addr.isEmpty()) {
++			return getAddress(FileSystem.getDefaultUri(conf).toString());
++		}
++		return getAddress(addr);
++	}
++
+ 	public static InetSocketAddress getAddress(String address) {
+ 		return NetUtils.createSocketAddr(address, DEFAULT_PORT);
+ 	}
+@@ -216,7 +253,6 @@ public class MDFSNameService implements MDFSNameProtocol{
+ 	}
+ 
+ 	public LocatedBlock addNewBlock(String src) throws IOException {
+-
+ 		return mdfsDir.addBlock(src,myNodeId);
+ 	}
+ 
+@@ -240,6 +276,150 @@ public class MDFSNameService implements MDFSNameProtocol{
+ 		}
+ 	}
+ 
++
++	//Directory Service Functions
++
++	public MDFSFileInfo getFileInfo(long fileId){
++		return commDir.getFileInfo(fileId);
++	}
++
++	public MDFSFileInfo getFileInfo(String fName){
++		return commDir.getFileInfo(fName);
++	}
++
++	public long getFileIdByName(String name){
++		return commDir.getFileIdByName(name);
++	}
++
++	public int getStoredKeyIndex(long fileId,int creator){
++		return commDir.getStoredKeyIndex(fileId,creator);
++	}      
++
++	public int getStoredKeyIndex(String fName,int creator){
++		return commDir.getStoredKeyIndex(fName,creator);
++	}
++
++	public SetWritable getStoredFileIndex(long fileId,int creator){
++		return commDir.getStoredFileIndex(fileId,creator);
++	}
++
++	public SetWritable getStoredFileIndex(String fName,int creator){
++		return  commDir.getStoredFileIndex(fName,creator);
++	}
++
++	public void addFile(MDFSFileInfo file){
++		commDir.addFile(file);
++	}
++
++	public void removeFile(long fileId){
++		commDir.removeFile(fileId);
++	}
++
++	public void addKeyFragment(long fileId, int keyIndex,int creator){
++		commDir.addKeyFragment(fileId,keyIndex,creator);
++	}
++
++	public void addKeyFragment(String fileName, int keyIndex,int creator){
++		commDir.addKeyFragment(fileName,keyIndex,creator);
++	}
++
++	public void replaceKeyFragment(long src,long dst){
++		commDir.replaceKeyFragment(src,dst);
++	}
++	
++	public void replaceFileFragment(long src,long dst){
++		commDir.replaceFileFragment(src,dst);
++	}
++
++	public void removeKeyFragment(long fileId,int creator){
++		commDir.removeKeyFragment(fileId,creator);
++	}
++
++	public void removeKeyFragment(String fileName,int creator){
++		commDir.removeKeyFragment(fileName,creator);
++	}
++
++	public void addFileFragment(long fileId, int fileIndex,int creator){
++		commDir.addFileFragment(fileId,fileIndex,creator);
++	}
++
++	public void addFileFragment(String fileName, int fileIndex,int creator){
++		commDir.addFileFragment(fileName,fileIndex,creator);
++	}
++
++	public void addFileFragment(long fileId, SetWritable fileIndex,int creator){
++		commDir.addFileFragment(fileId,fileIndex,creator);
++	}
++
++	public void addFileFragment(String fileName, SetWritable fileIndex,int creator){
++		commDir.addFileFragment(fileName,fileIndex,creator);
++	}
++
++
++	public void removeFileFragment(long fileId,int creator){
++		commDir.removeFileFragment(fileId,creator);
++	}
++
++	public void removeFileFragment(String fileName,int creator){
++		commDir.removeFileFragment(fileName,creator);
++	}
++
++	public void addEncryptedFile(long fileId){
++		commDir.addEncryptedFile(fileId);
++	}
++
++	public void addEncryptedFile(String fileName){
++		commDir.addEncryptedFile(fileName);
++	}
++
++	public void removeEncryptedFile(long fileId){
++		commDir.removeEncryptedFile(fileId);
++	}
++
++	public void removeEncryptedFile(String fileName){
++		commDir.removeEncryptedFile(fileName);
++	}       
++
++	public void addDecryptedFile(long fileId){
++		commDir.addDecryptedFile(fileId);
++	}
++
++	public void addDecryptedFile(String fileName){
++		commDir.addDecryptedFile(fileName);
++	}
++
++
++	public void removeDecryptedFile(long fileId){
++		commDir.removeDecryptedFile(fileId);
++	}
++
++	public void removeDecryptedFile(String fileName){
++		commDir.removeDecryptedFile(fileName);
++	}
++
++	public boolean isEncryptedFileCached(long fileId){
++		return commDir.isEncryptedFileCached(fileId);
++	}
++	public boolean isDecryptedFileCached(long fileId){
++		return commDir.isDecryptedFileCached(fileId);
++	}
++
++	public void clearAll() {
++		commDir.clearAll();
++	}
++
++	public boolean saveDirectory(){
++		return commDir.saveDirectory();
++	}
++
++	public void syncLocal(int nodeId){
++		commDir.syncLocal(nodeId);
++	}
++
++	public MDFSInfoList getFileList(){
++		return commDir.getFileList();
++	}
++
+ }
+ 
+ 
+diff --git a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/utils/MDFSShell.java b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/utils/MDFSShell.java
+index 286a93d..480c169 100644
+--- a/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/utils/MDFSShell.java
++++ b/hadoop-1.2.1/src/hdfs/org/apache/hadoop/mdfs/utils/MDFSShell.java
+@@ -59,19 +59,37 @@ class MDFSShell{
+ 			}
+ 
+ 			else if(args[0].contains("-createRandomFile") ){
+-				System.out.println(" Creating File "+args[1]+" with random Contents");
+-				FSDataOutputStream out=fs.create(new Path(args[1]),FsPermission.getDefault(),false,(int)4192,(short)1,(long)4192*1024,null);
++				int size = Integer.parseInt(args[2]);
++				System.out.println(" Creating File "+args[1]+" with random Contents with size "+size+" MB");
++				FSDataOutputStream out=fs.create(new Path(args[1]),FsPermission.getDefault(),false,(int)4192,(short)1,(long)4*1024*1024,null);
+ 				BufferedWriter br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
+ 				int i=0;
+-				while(i<10000){
++				while(i<(40000*size)){
+ 					br.write("Hello World");
+-					br.write(" done ");
++					br.write("done come here");
+ 					i++;}
+ 				br.close();
+ 				out.close();
+ 
+ 			}
+ 
++			else if(args[0].contains("-createMultipleRandomFiles") ){
++				int noFiles = Integer.parseInt(args[2]);
++				for(int j=0;j<noFiles;j++){
++					System.out.println(" Creating File "+args[1]+j+" with random Contents");
++					FSDataOutputStream out=fs.create(new Path(args[1]+j),FsPermission.getDefault(),false,(int)4192,(short)1,(long)4192*1024,null);
++					BufferedWriter br = new BufferedWriter( new OutputStreamWriter( out, "UTF-8" ) );
++					int i=0;
++					while(i<10000){
++						br.write("Hello World");
++						br.write(" done ");
++						i++;}
++					br.close();
++					out.close();
++				}
++
++			}
++
+ 			else if(args[0].contains("-rename") ){
+ 				System.out.println(" Renaming src "+args[1]+" to dest "+args[2]);
+ 				fs.rename(new Path(args[1]),new Path(args[2]));
+@@ -94,7 +112,7 @@ class MDFSShell{
+ 				System.out.println(" Printing Complete Tree  from "+args[1]);
+ 				fs.printTree(new Path(args[1]),true);
+ 			}
+-			else if(args[0].contains("-read") ){
++			else if(args[0].contains("-readFile") ){
+ 				System.out.println(" Reading File  "+args[1]);
+ 				boolean toPrint=false;
+ 				if(args.length >= 3)
+@@ -113,7 +131,8 @@ class MDFSShell{
+ 					count+=a;
+ 					//if(toPrint)
+ 					//	sb.append((char)a);
+-					str=str+new String(b1);
++					if(toPrint)
++						str=str+new String(b1);
+ 				}
+ 				System.out.println(" Read end");
+ 				if(toPrint)
+@@ -122,6 +141,29 @@ class MDFSShell{
+ 
+ 
+ 			}
++			else if(args[0].contains("-readMultipleFiles") ){
++				System.out.println(" Reading File  "+args[1]);
++				boolean toPrint=false;
++				int noFiles=Integer.parseInt(args[2]);
++				for(int j=0;j<noFiles;j++){
++					FSDataInputStream in=fs.open(new Path(args[1]+j));
++					BufferedReader rd = new BufferedReader( new InputStreamReader( in) );
++
++
++					byte[] b1 = new byte[4096];
++					int a=0;
++					int count=0;
++					System.out.println(" Read start");
++					while((a=in.read(b1,0,4096)) !=-1){
++						count+=a;
++						//if(toPrint)
++						//	sb.append((char)a);
++					}
++					System.out.println(" Read end");
++					System.out.println(" Reading complete file done. Total "+ count+ " chars");
++				}
++
++			}
+ 			else{
+ 				System.err.println("Unrecognized arguments!");
+ 			}
+diff --git a/hadoop-1.2.1/src/mapred/mapred-default.xml b/hadoop-1.2.1/src/mapred/mapred-default.xml
+index f7d2554..d43f681 100644
+--- a/hadoop-1.2.1/src/mapred/mapred-default.xml
++++ b/hadoop-1.2.1/src/mapred/mapred-default.xml
+@@ -463,7 +463,7 @@
+ 
+ <property>
+   <name>mapred.child.java.opts</name>
+-  <value>-Xmx200m</value>
++  <value>-Xmx768m</value>
+   <description>Java opts for the task tracker child processes.  
+   The following symbol, if present, will be interpolated: @taskid@ is replaced 
+   by current TaskID. Any other occurrences of '@' will go unchanged.

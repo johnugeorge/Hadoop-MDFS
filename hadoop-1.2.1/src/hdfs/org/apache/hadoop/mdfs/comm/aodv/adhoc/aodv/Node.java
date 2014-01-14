@@ -263,6 +263,7 @@ public class Node extends Observable {
 	 * @param data the actual data which the application message contained
 	 */
 	protected void notifyAboutDataReceived(int senderNodeAddess, UserDataPacket packet) {
+		//System.out.print("Received data type "+packet.getData().getPacketType()+" from Node "+senderNodeAddess);
 		messagesForObservers.add(new AODVDataToObserver(ObserverConst.AODV_DATA_CONTAINER, packet.getData()));
 		wakeNotifierThread();
 	}
@@ -275,7 +276,7 @@ public class Node extends Observable {
 	 */
 	protected void notifyAboutDataReceived(int senderNodeAddess, AODVDataContainer data) {	
 		 messagesForObservers.add(new AODVDataToObserver(ObserverConst.AODV_DATA_CONTAINER, data));
-		 Logger.i(TAG, "Packet type " + data.getPacketType() + " is added to messagesForObservers");
+		 //Logger.i(TAG, "Packet type " + data.getPacketType() + " is added to messagesForObservers");
 		 wakeNotifierThread();
 	}
 	
@@ -456,8 +457,9 @@ public class Node extends Observable {
 						}
 					}
 					setChanged();
-					notifyObservers(messagesForObservers.poll());
-					Logger.i(TAG, "Packet  is sent to Observer");
+					MessageToObserver tmp=messagesForObservers.poll();
+					notifyObservers(tmp);
+					//Logger.i(TAG, "Packet  is sent to Observer" + tmp.getMessageType());
 				}catch (InterruptedException e) {
 					// thread stopped
 				}

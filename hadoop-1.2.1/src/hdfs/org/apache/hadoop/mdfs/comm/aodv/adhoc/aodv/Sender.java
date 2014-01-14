@@ -57,7 +57,7 @@ public class Sender implements Runnable{
     
     public void startThread(){
     	keepRunning = true;
-    	startHelloBroadcast();
+	//startHelloBroadcast();
     	senderThread = new Thread(this, Sender.class.getSimpleName());
     	senderThread.start();
     }
@@ -96,7 +96,8 @@ public class Sender implements Runnable{
 	    			str.append("userdata, " + userData.getUserDataType() + ", ");
 	    			str.append(parent.getNodeId() + ", " + userData.getDestinationAddress() + ", ");
 	    			str.append(userData.getHopCount());
-	    			str.append("\n");
+	    			str.append("\n\n\n\n");
+	    			//System.out.println(" UserData Packet "+str);
 	    			//dataLogger.appendSensorData(LogFileName.PACKET_SENT, str.toString());
 	    			
 	    			try{
@@ -446,7 +447,7 @@ public class Sender implements Runnable{
     
     protected void queueUserMessageFromNode(UserDataPacket userPacket){
     	userMessagesFromNode.add(userPacket);
-    	Logger.v(TAG, "New User Message is queued");
+    	//Logger.v(TAG, "New User Message is queued. Type: " + userPacket.getData().getPacketType());
     	synchronized (queueLock) {
     		queueLock.notify();
 		}
@@ -465,6 +466,7 @@ public class Sender implements Runnable{
 			}
 		}
     }*/
+    
     
     /**
      * Removes every message from the user packet queue that matches the given destination

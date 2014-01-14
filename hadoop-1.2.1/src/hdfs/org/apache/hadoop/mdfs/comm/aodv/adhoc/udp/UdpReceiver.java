@@ -74,7 +74,7 @@ public class UdpReceiver implements Runnable {
 		while (keepRunning) {
 			try {
 				Socket socket = tcpSocket.accept();
-				Logger.v(TAG, "Receive Connection from " + socket.getRemoteSocketAddress());
+				//Logger.v(TAG, "Receive Connection from " + socket.getRemoteSocketAddress());
 				pool.execute(new TcpPacketReceiver(socket));
 				
 			} catch (IOException e) {
@@ -174,7 +174,7 @@ public class UdpReceiver implements Runnable {
 					
 					System.arraycopy(brodcastReceivePacket.getData(), 0, bdResult, 0, brodcastReceivePacket.getData().length);	// brodcastReceivePacket.getLength()
 
-					Logger.v(TAG, "Receive Broadcast of " + brodcastReceivePacket.getSocketAddress());
+					//Logger.v(TAG, "Receive Broadcast of " + brodcastReceivePacket.getSocketAddress());
 
 					parent.addMessage(bdNodeId, bdResult);
 				} catch (IOException e) {

@@ -90,7 +90,7 @@ public class Receiver implements Runnable {
 			str.append(msg.getType() + ", " + nodeAddress + ", " + msg.getSender());
 			str.append("\n");
 			//dataLogger.appendSensorData(LogFileName.PACKET_RECEIVED, str.toString());
-			
+			//System.out.println(" MEssage Recieved in Receiver "+str);
 			switch (msg.getType()) {
 			case Constants.HELLO_PDU:
 				HelloPacket hello = HelloPacket.parseFromByteArray(msg.data, HelloPacket.class);

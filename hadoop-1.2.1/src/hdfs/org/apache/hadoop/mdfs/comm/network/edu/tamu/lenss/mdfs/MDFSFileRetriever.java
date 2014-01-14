@@ -41,6 +41,8 @@ import edu.tamu.lenss.mdfs.models.MDFSFileInfo;
 import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 import edu.tamu.lenss.mdfs.utils.JCountDownTimer;
 
+import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
+
 
 public class MDFSFileRetriever {
 	private static final String TAG = MDFSFileRetriever.class.getSimpleName();
@@ -113,8 +115,8 @@ public class MDFSFileRetriever {
 			fileRetLog.discEnd = System.currentTimeMillis();
 			
 			// Cache the key fragment and retrieve the file fragments
-			MDFSDirectory directory = serviceHelper.getDirectory();
-			Set<Integer> myfiles = directory.getStoredFileIndex(fileId);	// Get the current file fragments I have
+			MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
+			Set<Integer> myfiles = directory.getStoredFileIndex(fileId,serviceHelper.getMyNode().getNodeId()).getItemSet();	// Get the current file fragments I have
 			if(myfiles == null)
 				myfiles = new HashSet<Integer>();	
 			Set<Integer> uniqueFile = new HashSet<Integer>();				// add all the available fragments, including mine an others  
@@ -140,13 +142,13 @@ public class MDFSFileRetriever {
 			uniqueFile.addAll(myfiles);
 			
 			// Add My KeyShare.
-			int keyIdx = directory.getStoredKeyIndex(fileId);
+			int keyIdx = directory.getStoredKeyIndex(fileId,serviceHelper.getMyNode().getNodeId());
 			if(keyIdx >= 0){
 				// add mine to keyShares
 				String dirName = MDFSFileInfo.getDirName(fileName,fileId);
 				String fName =  MDFSFileInfo.getShortFileName(fileName)+ "__key__" + keyIdx;
 				File f = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" + dirName + "/" + fName);
-				System.out.println(" FileName "+f.getAbsolutePath());
+				//System.out.println(" FileName "+f.getAbsolutePath());
 				KeyShareInfo key = IOUtilities.readObjectFromFile(f, KeyShareInfo.class);
 				keyShares.add(key);
 			}
@@ -203,8 +205,10 @@ public class MDFSFileRetriever {
 		String fDirName = MDFSFileInfo.getDirName(fileName, fileId);
 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/" +	fDirName );
 		if(!tmp0.exists()){
-			tmp0.mkdirs();
-			listener.onError("File IO Error. Can't save file locally");
+			if(!tmp0.mkdirs()){
+			    listener.onError("File IO Error. Can't save file locally");
+			    return;
+			}
 		}
 		
 		listener.statusUpdate("Downloading fragments");
@@ -279,7 +283,7 @@ public class MDFSFileRetriever {
 		FragmentInfo frag;
 		// Don't use the fragment that may not finish downloading yet
 		Set<Integer> downloaded = 
-			ServiceHelper.getInstance().getDirectory().getStoredFileIndex(fileId);
+			ServiceHelper.getInstance().getDirectory().getStoredFileIndex(fileId,serviceHelper.getMyNode().getNodeId()).getItemSet();
 		for (File f : files) {
 			if(f.getName().contains("__frag__")){
 				frag = IOUtilities.readObjectFromFile(f, FragmentInfo.class);
@@ -305,7 +309,7 @@ public class MDFSFileRetriever {
 		}
 		fileRetLog.decryEnd = System.currentTimeMillis();
 		
-		MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
+		MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
 		// save decrypted data as a file
 		byte [] fileBytes = decoder.getPlainBytes();
 		File tmp0 = AndroidIOUtils.getExternalFile(Constants.DIR_DECRYPTED);
@@ -315,7 +319,7 @@ public class MDFSFileRetriever {
 			fos.write(fileBytes, 0, fileBytes.length);
 			fos.close();
 			directory.addDecryptedFile(fileId);
-			Logger.i(TAG, "File Decryption Complete");
+			Logger.i(TAG, "File Decryption Complete:Decrypted file loc "+tmp.getAbsolutePath());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -333,6 +337,7 @@ public class MDFSFileRetriever {
 			fos.write(fileBytes, 0, fileBytes.length);
 			fos.close();
 			directory.addEncryptedFile(fileId);
+			Logger.i(TAG, "File Decryption Complete:Encrypted file loc "+tmp.getAbsolutePath());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -342,7 +347,7 @@ public class MDFSFileRetriever {
 		}
 		
 		writeLog();
-		listener.onComplete(tmp, fileInfo);
+		listener.onComplete(tmp, fileInfo,fileName);
 	}
 	
 	private void writeLog(){
@@ -441,7 +446,7 @@ public class MDFSFileRetriever {
 				oos.writeObject(header);
 				
 				// Start to download and save the file fragment
-				Logger.v(TAG, "Strat downloading frag " + fragmentIndex + " from " + destId);
+				Logger.v(TAG, "Start downloading frag " + fragmentIndex + " from " + destId);
 				String fDirName = MDFSFileInfo.getDirName(fileName,fileId);
 				String fName =  MDFSFileInfo.getShortFileName(fileName)+ "__frag__" + fragmentIndex;
 				//tmp0 = IOUtilities.getExternalFile(Constants.DIR_ROOT + "/" +	fDirName );
@@ -469,8 +474,8 @@ public class MDFSFileRetriever {
 				timer.cancel();
 				if(success && tmp0.length() > 0){	// Hacky way to avoid 0 byte file
 					// update directory
-					MDFSDirectory directory = ServiceHelper.getInstance().getDirectory();
-					directory.addFileFragment(header.getCreatedTime(), header.getFragIndex());
+					MDFSDirectoryProtocol directory = ServiceHelper.getInstance().getDirectory();
+					directory.addFileFragment(header.getCreatedTime(), header.getFragIndex(),serviceHelper.getMyNode().getNodeId());
 					locFragCounter.incrementAndGet();
 				}
 				else if(tmp0 != null){ 
@@ -482,6 +487,7 @@ public class MDFSFileRetriever {
 					//if(success && downloadCounter.decrementAndGet() <= 1){
 					if(locFragCounter.get() >= fileInfo.getK2()){ 	//success && 
 						decoding = true;
+						timer.cancel(); 
 						timer.onFinish();						
 					}
 					else
@@ -507,7 +513,7 @@ public class MDFSFileRetriever {
 		public void onError(String error) {
 		}
 		@Override
-		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo) {
+		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo,String fileName) {
 		}
 		@Override
 		public void statusUpdate(String status) {
@@ -516,7 +522,7 @@ public class MDFSFileRetriever {
 	public interface FileRetrieverListener{
 		public void onError(String error);
 		public void statusUpdate(String status);
-		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo);
+		public void onComplete(File decryptedFile, MDFSFileInfo fileInfo,String fileName);
 	}
 	
 	private class FileRetrieveLog{

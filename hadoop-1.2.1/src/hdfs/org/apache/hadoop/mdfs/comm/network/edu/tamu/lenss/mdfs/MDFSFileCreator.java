@@ -39,6 +39,7 @@ import edu.tamu.lenss.mdfs.utils.AndroidIOUtils;
 import edu.tamu.lenss.mdfs.utils.JCountDownTimer;
 import edu.tamu.lenss.mdfs.Constants;
 
+import org.apache.hadoop.mdfs.protocol.MDFSDirectoryProtocol;
 
 
 public class MDFSFileCreator {
@@ -201,14 +202,14 @@ public class MDFSFileCreator {
 		File fragsDir = AndroidIOUtils.getExternalFile(Constants.DIR_ROOT + "/"
 				+ MDFSFileInfo.getDirName(fileName, fileInfo.getCreatedTime()));
 
-		MDFSDirectory directory = serviceHelper.getDirectory();
+		MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
 		// Create file fragments
 		for (FragmentInfo frag : fragInfos) {
 			File tmp = IOUtilities.createNewFile(fragsDir, frag.getFileName()
 					+ "__frag__" + frag.getFragmentNumber());
 			if (IOUtilities.writeObjectToFile(frag, tmp)) {
 				directory.addFileFragment(fileInfo.getCreatedTime(),
-						frag.getFragmentNumber());
+						frag.getFragmentNumber(),serviceHelper.getMyNode().getNodeId());
 			}
 		}
 		listener.statusUpdate("Encryption Complete");
@@ -307,6 +308,7 @@ public class MDFSFileCreator {
 		for (KeyShareInfo key : keyShares) {
 			if (nodesIter != null && nodesIter.hasNext()) {
 				destNode = nodesIter.next();
+				//Logger.v(TAG, "Key Frag: destNode "+destNode+" my node id "+node.getNodeId());
 				if (destNode != node.getNodeId()) {
 					final KeyFragPacket packet = new KeyFragPacket(node.getNodeId(),
 							destNode, key, fileInfo.getCreatedTime());
@@ -318,15 +320,18 @@ public class MDFSFileCreator {
 							// node.sendAODVDataContainer(packet);
 						}
 					});*/
+					//Logger.v(TAG, "Sending key packet to destNode "+destNode);
 					node.sendAODVDataContainer(packet);
+					//code till here
 				} else {
 					// Just store the key fragment locally.
+					//Logger.v(TAG, "Saving key packet locally");
 					File tmp = IOUtilities.createNewFile(fileFragDir,
 							key.getFileName() + "__key__" + key.getIndex());
 					if (IOUtilities.writeObjectToFile(key, tmp)) {
-						MDFSDirectory directory = serviceHelper.getDirectory();
+						MDFSDirectoryProtocol directory = serviceHelper.getDirectory();
 						directory.addKeyFragment(fileInfo.getCreatedTime(),
-								key.getIndex());
+								key.getIndex(),serviceHelper.getMyNode().getNodeId());
 					}
 				}
 			}
